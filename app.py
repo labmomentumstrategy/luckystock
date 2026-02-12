@@ -14,19 +14,24 @@ st.set_page_config(
 
 # --- GA4 Tracking ---
 GA_MEASUREMENT_ID = st.secrets.get("ga4", {}).get("measurement_id", "G-T7P0CTKWXX")
+
 if GA_MEASUREMENT_ID:
     GA_TRACKING_CODE = f"""
+    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id={GA_MEASUREMENT_ID}"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){{dataLayer.push(arguments);}}
       gtag('js', new Date());
+
       gtag('config', '{GA_MEASUREMENT_ID}', {{
+          'page_path': window.parent.location.pathname,
+          'page_location': window.parent.location.href,
           'cookie_flags': 'max-age=7200;secure;samesite=none'
       }});
     </script>
     """
-    components.html(GA_TRACKING_CODE, height=0)
+    components.html(GA_TRACKING_CODE, height=0, width=0)
 
 # --- Import after page config ---
 from utils.gsheet import get_summary_stats
