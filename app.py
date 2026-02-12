@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # --- GA4 Tracking ---
-GA_MEASUREMENT_ID = st.secrets.get("ga4", {}).get("measurement_id", "")
+GA_MEASUREMENT_ID = st.secrets.get("ga4", {}).get("measurement_id", "G-T7P0CTKWXX")
 if GA_MEASUREMENT_ID:
     GA_TRACKING_CODE = f"""
     <script async src="https://www.googletagmanager.com/gtag/js?id={GA_MEASUREMENT_ID}"></script>
