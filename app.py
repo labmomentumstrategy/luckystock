@@ -35,6 +35,11 @@ if GA_MEASUREMENT_ID:
 
 # --- Import after page config ---
 from utils.gsheet import get_summary_stats
+from utils.analytics import track_page_view
+
+# --- Server-Side Tracking ---
+# This runs on every app rerun
+track_page_view("Home")
 
 # --- Custom CSS ---
 st.markdown("""
