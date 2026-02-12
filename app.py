@@ -21,7 +21,9 @@ if GA_MEASUREMENT_ID:
       window.dataLayer = window.dataLayer || [];
       function gtag(){{dataLayer.push(arguments);}}
       gtag('js', new Date());
-      gtag('config', '{GA_MEASUREMENT_ID}');
+      gtag('config', '{GA_MEASUREMENT_ID}', {{
+          'cookie_flags': 'max-age=7200;secure;samesite=none'
+      }});
     </script>
     """
     components.html(GA_TRACKING_CODE, height=0)
