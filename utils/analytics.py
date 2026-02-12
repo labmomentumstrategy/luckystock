@@ -45,9 +45,14 @@ def track_event(event_name, params=None):
         # Silently ignore errors to prevent UI disruption
         pass
 
-def track_page_view(page_title):
+def track_page_view(page_title, page_path="/"):
     """Helper to track page view events."""
+    # Construct a fake URL for GA4 to report distinct pages
+    base_url = "https://volume-momentum-radar.streamlit.app"
+    full_url = f"{base_url}{page_path}"
+    
     track_event("page_view", {
         "page_title": page_title,
-        "page_location": str(st.query_params) # Capture query params if any
+        "page_location": full_url,
+        "page_path": page_path
     })

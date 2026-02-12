@@ -14,7 +14,7 @@ from utils.gsheet import get_ticker_list, get_stock_data
 from utils.analytics import track_page_view
 
 # --- Server-Side Tracking ---
-track_page_view("Individual Stock")
+track_page_view("Individual Stock", page_path="/stock")
 
 # --- Page Configuration ---
 st.set_page_config(

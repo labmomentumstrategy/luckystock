@@ -39,7 +39,7 @@ from utils.analytics import track_page_view
 
 # --- Server-Side Tracking ---
 # This runs on every app rerun
-track_page_view("Home")
+track_page_view("Home", page_path="/")
 
 # --- Custom CSS ---
 st.markdown("""
