@@ -49,11 +49,9 @@ def track_event(event_name, params=None):
     client_id = get_client_id()
     session_id = get_session_id()
     
-    # Enhanced core params for better user tracking
     core_params = {
         "session_id": session_id,
-        "engagement_time_msec": "100",  # Critical for 'Active Users' counting
-        "debug_mode": "true",  # Helpful for realtime debugging
+        "engagement_time_msec": 100,  # Must be integer for Active Users
     }
     
     # Merge core params with custom params
