@@ -1,5 +1,7 @@
 import streamlit as st
 from pathlib import Path
+import subprocess
+
 
 def load_css(file_name="assets/style.css"):
     """
@@ -45,4 +47,15 @@ def render_sidebar():
         st.markdown("#### 📺 Learn More")
         st.markdown("觀看 YouTube 教學影片，了解如何使用此工具。")
         st.link_button("▶️ Watch Tutorial", "https://youtube.com/your_channel_link")
+
+        # --- Version ---
+        st.markdown("---")
+        try:
+            result = subprocess.run(
+                ["git", "log", "-1", "--format=%h | %cd", "--date=short"],
+                capture_output=True, text=True, timeout=3
+            )
+            st.caption(f"🔖 {result.stdout.strip()}")
+        except Exception:
+            st.caption("🔖 version unknown")
 
