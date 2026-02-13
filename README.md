@@ -35,15 +35,22 @@ streamlit run app.py
 
 ```
 luckystock/
-├── app.py                    # 首頁
+├── app.py                     # 首頁 (HUD Dashboard)
 ├── pages/
-│   └── 1_📈_Stock.py         # 個股 K 線頁
+│   └── 1_Stock_Query.py       # 個股查詢頁 (Line Chart + Score Cards)
 ├── utils/
-│   └── gsheet.py             # GSheet 連線模組
+│   ├── __init__.py            # Package init
+│   ├── gsheet.py              # GSheet 連線模組
+│   ├── analytics.py           # GA4 Server-Side Tracking
+│   └── ui.py                  # 共用 UI 元件 (CSS, Sidebar)
+├── assets/
+│   └── style.css              # 全站 CSS 樣式
 ├── .streamlit/
-│   ├── config.toml           # Theme 設定
-│   └── secrets.toml          # 憑證 (不上傳)
-└── requirements.txt
+│   ├── config.toml            # Theme 設定
+│   └── secrets.toml           # 憑證 (不上傳)
+├── requirements.txt
+├── secrets.toml.template
+└── .gitignore
 ```
 
 ## 免責聲明

@@ -2,6 +2,8 @@
 import streamlit as st
 import requests
 import uuid
+import threading
+
 
 def get_client_id():
     """Generate or retrieve a client_id for this session."""
@@ -9,9 +11,18 @@ def get_client_id():
         st.session_state.client_id = str(uuid.uuid4())
     return st.session_state.client_id
 
+
+def _send_event_async(url: str, payload: dict) -> None:
+    """Fire-and-forget HTTP POST to GA4 (runs in background thread)."""
+    try:
+        requests.post(url, json=payload, timeout=3)
+    except Exception:
+        pass
+
+
 def track_event(event_name, params=None):
     """
-    Send an event to GA4 via Measurement Protocol.
+    Send an event to GA4 via Measurement Protocol (non-blocking).
     
     Args:
         event_name (str): The name of the event (e.g., 'page_view', 'button_click').
@@ -23,7 +34,7 @@ def track_event(event_name, params=None):
     api_secret = ga4_secrets.get("api_secret")
     
     if not measurement_id or not api_secret:
-        # If secrets are missing, silently fail (or log warning if logging set up)
+        # If secrets are missing, silently fail
         return
 
     client_id = get_client_id()
@@ -38,12 +49,10 @@ def track_event(event_name, params=None):
     
     url = f"https://www.google-analytics.com/mp/collect?measurement_id={measurement_id}&api_secret={api_secret}"
     
-    try:
-        # Use a short timeout to not block UI
-        requests.post(url, json=payload, timeout=2)
-    except Exception as e:
-        # Silently ignore errors to prevent UI disruption
-        pass
+    # Fire-and-forget: send in background thread to avoid blocking UI
+    thread = threading.Thread(target=_send_event_async, args=(url, payload), daemon=True)
+    thread.start()
+
 
 def track_page_view(page_title, page_path="/"):
     """Helper to track page view events."""

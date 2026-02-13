@@ -1,0 +1,236 @@
+/* --- Global Fonts --- */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap');
+
+html,
+body,
+[class*="css"] {
+    font-family: 'Noto Sans TC', sans-serif;
+}
+
+/* --- Metrics & Numbers --- */
+.metric-value,
+.stMetric [data-testid="stMetricValue"] {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* --- Fixed Sidebar Width --- */
+[data-testid="stSidebar"] {
+    min-width: 300px !important;
+    max-width: 300px !important;
+}
+
+/* --- Score Card Style (Legacy/Generic) --- */
+div[data-testid="metric-container"] {
+    background-color: #131722;
+    border: 1px solid #2a2e39;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+div[data-testid="metric-container"]:hover {
+    border-color: #00d4aa;
+    box-shadow: 0 0 15px rgba(0, 212, 170, 0.2);
+}
+
+/* --- Scanline Effect --- */
+.scanline {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1));
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.3;
+}
+
+/* --- CTA Buttons --- */
+.stButton button {
+    width: 100%;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* --- Disclaimer Box --- */
+.disclaimer-box {
+    background-color: #0f1218;
+    padding: 20px;
+    border-radius: 4px;
+    border-left: 3px solid #ff6b35;
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin-top: 50px;
+}
+
+/* --- Form Elements --- */
+.stSelectbox>div>div {
+    background-color: #131722;
+    color: #e8eaed;
+    border: 1px solid #2a2e39;
+}
+
+/* --- Chart Container --- */
+.js-plotly-plot .plotly .modebar {
+    background: transparent !important;
+}
+
+/* --- HUD Container (Grid Layout) --- */
+.hud-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    background: rgba(19, 23, 34, 0.6);
+    border: 1px solid #1e222d;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.05);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decoration Lines */
+.hud-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00d4aa, transparent);
+    opacity: 0.5;
+}
+
+/* Individual Stat Box */
+.hud-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 15px 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.hud-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Labels */
+.hud-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: #6b7280;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+/* Values */
+.hud-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #e8eaed;
+    text-shadow: 0 0 10px rgba(232, 234, 237, 0.1);
+}
+
+/* Special Highlight: Win Rate */
+.hud-item.highlight {
+    background: linear-gradient(180deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 212, 170, 0.05) 100%);
+    border: 1px solid #00d4aa;
+    box-shadow: 0 0 15px rgba(0, 212, 170, 0.2);
+}
+
+.hud-item.highlight .hud-label {
+    color: #00d4aa;
+    font-weight: bold;
+}
+
+.hud-item.highlight .hud-value {
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(0, 212, 170, 0.6);
+}
+
+/* Colors */
+.val-green {
+    color: #00d4aa;
+    text-shadow: 0 0 10px rgba(0, 212, 170, 0.3);
+}
+
+.val-red {
+    color: #ff6b35;
+    text-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hud-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Stock Info Score Cards --- */
+.stock-info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.stock-info-card {
+    background: rgba(19, 23, 34, 0.8);
+    border: 1px solid #1e222d;
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-bottom: 12px;
+}
+
+.stock-info-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(19, 23, 34, 0.95);
+}
+
+.stock-info-card .card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: #6b7280;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.stock-info-card .card-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #e8eaed;
+}
+
+.stock-info-card .card-value.val-accent {
+    color: #ff6b35;
+    text-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+}
+
+.stock-info-card .card-sub {
+    font-size: 0.7rem;
+    color: #4b5563;
+    margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+    .stock-info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

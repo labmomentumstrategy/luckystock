@@ -1,163 +1,98 @@
 """
 VMR 觀察站 - 首頁
-Volume-Momentum-Radar Observatory
+Professional Demo & Trust Building
 """
 import streamlit as st
 import streamlit.components.v1 as components
 
 # --- Page Configuration ---
 st.set_page_config(
-    page_title="VMR 觀察站 | Volume-Momentum Radar",
+    page_title="VMR 觀察站 | Professional Demo",
     page_icon="📡",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# --- GA4 Tracking ---
-GA_MEASUREMENT_ID = st.secrets.get("ga4", {}).get("measurement_id", "G-T7P0CTKWXX")
-
-if GA_MEASUREMENT_ID:
-    GA_TRACKING_CODE = f"""
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id={GA_MEASUREMENT_ID}"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){{dataLayer.push(arguments);}}
-      gtag('js', new Date());
-
-      gtag('config', '{GA_MEASUREMENT_ID}', {{
-          'page_path': window.parent.location.pathname,
-          'page_location': window.parent.location.href,
-          'cookie_flags': 'max-age=7200;secure;samesite=none'
-      }});
-    </script>
-    """
-    components.html(GA_TRACKING_CODE, height=0, width=0)
-
-# --- Import after page config ---
-from utils.gsheet import get_summary_stats
-from utils.analytics import track_page_view
-
 # --- Server-Side Tracking ---
-# This runs on every app rerun
-track_page_view("Home", page_path="/")
+try:
+    from utils.analytics import track_page_view
+    track_page_view("Home", page_path="/")
+except Exception:
+    pass
 
-# --- Custom CSS ---
-st.markdown("""
-<style>
-    .metric-card {
-        background: linear-gradient(135deg, #1e222d 0%, #131722 100%);
-        padding: 20px;
-        border-radius: 10px;
-        border: 1px solid #2a2e39;
-        text-align: center;
-    }
-    .metric-value {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #2196F3;
-    }
-    .metric-label {
-        font-size: 0.9rem;
-        color: #848e9c;
-        margin-top: 5px;
-    }
-    .hero-section {
-        text-align: center;
-        padding: 40px 0;
-    }
-    .disclaimer {
-        background-color: #1e222d;
-        padding: 15px;
-        border-radius: 8px;
-        border-left: 4px solid #ff9800;
-        margin-top: 40px;
-        font-size: 0.85rem;
-        color: #848e9c;
-    }
-</style>
-""", unsafe_allow_html=True)
+# --- Import Data & UI ---
+from utils.gsheet import get_summary_stats
+from utils.ui import load_css, inject_scanline_effect, render_sidebar
 
-# --- Hero Section ---
-st.markdown("""
-<div class="hero-section">
-    <h1>📡 VMR 觀察站</h1>
-    <p style="color: #848e9c; font-size: 1.1rem;">
-        Volume-Momentum-Radar | 量價動能觀測平台
-    </p>
-</div>
-""", unsafe_allow_html=True)
+# --- Load Custom CSS & Effects ---
+load_css()
+inject_scanline_effect()
 
-# --- Stats Cards ---
+# --- Main Layout ---
+st.markdown("### 🔭 System Dashboard")
+st.caption("Professional Demo & Trust Verification")
+
+# --- Sidebar (Modular) ---
+render_sidebar()
+
+# --- Sci-Fi HUD Ticker (Custom Component) ---
 stats = get_summary_stats()
 
-col1, col2, col3, col4 = st.columns(4)
+st.markdown(f"""
+<div class="hud-container">
+<!-- Row 1 -->
+<div class="hud-item">
+<div class="hud-label">DATA RANGE</div>
+<div class="hud-value">2021-2026</div>
+</div>
+<div class="hud-item highlight">
+<div class="hud-label">WIN RATE</div>
+<div class="hud-value">{stats['win_rate']}%</div>
+</div>
+<div class="hud-item">
+<div class="hud-label">AVG RETURN</div>
+<div class="hud-value val-green">+{stats['avg_return']}%</div>
+</div>
 
-with col1:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value">{stats['win_rate']:.1f}%</div>
-        <div class="metric-label">歷史勝率 (60日)</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value">{stats['total_signals']:,}</div>
-        <div class="metric-label">總訊號數</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value">{stats['today_signals']}</div>
-        <div class="metric-label">今日訊號</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col4:
-    data_range = ""
-    if stats['data_start'] and stats['data_end']:
-        data_range = f"{stats['data_start'].strftime('%Y/%m/%d')} - {stats['data_end'].strftime('%Y/%m/%d')}"
-    else:
-        data_range = "載入中..."
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value" style="font-size: 1.2rem;">{data_range}</div>
-        <div class="metric-label">資料期間</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# --- Description ---
-st.markdown("---")
-st.markdown("""
-### 什麼是 VMR 觀察站？
-
-VMR 觀察站是一個**量價動能觀測平台**，透過演算法計算成交量變化指標，
-標記出異常的成交量放大訊號。我們邀請您一起「觀測」市場的量價變化。
-
-**觀測重點：**
-- 📊 **動能標籤**：識別成交量異常放大的時間點
-- 📈 **K 線圖表**：視覺化股價走勢與訊號位置
-- 📉 **歷史驗證**：追蹤訊號後的價格表現
-""")
-
-# --- Disclaimer ---
-st.markdown("""
-<div class="disclaimer">
-    <strong>⚠️ 免責聲明</strong><br>
-    本平台僅供研究觀測用途，所有資料與標籤皆非投資建議。
-    動能標籤為成交量經由大數據演算法計算出之指標，目的在找出異常的成交量（多方買盤動能）。
-    動能資料盡力求數據正確，但無法保證數據沒有誤差。
-    因此，請勿以此作為任何投資活動之根據，任何數據誤差或錯誤，以市場正確資料為主。
+<!-- Row 2 -->
+<div class="hud-item">
+<div class="hud-label">TOTAL SIGNALS</div>
+<div class="hud-value">{stats['total_signals']:,}</div>
+</div>
+<div class="hud-item">
+<div class="hud-label">WIN COUNT</div>
+<div class="hud-value val-green">{stats['win_count']:,}</div>
+</div>
+<div class="hud-item">
+<div class="hud-label">LOSS COUNT</div>
+<div class="hud-value val-red">{stats['loss_count']:,}</div>
+</div>
 </div>
 """, unsafe_allow_html=True)
 
-# --- Footer ---
 st.markdown("---")
+
+# --- Content Body ---
+st.markdown("### 📊 What is VMR?")
+st.info("""
+**VMR (Volume-Momentum-Radar)** 是一個量價動能演算法，專門捕捉市場中**異常的買盤動能**。
+
+此 Demo 站點展示了我們演算法的歷史回測數據與即時訊號的可視化效果。
+我們相信數據會說話，透過透明的歷史紀錄，驗證策略的有效性。
+""")
+
+st.markdown("### 🔥 Strategy Highlights")
 st.markdown("""
-<div style="text-align: center; color: #848e9c; font-size: 0.8rem;">
-    VMR Observatory © 2026 | Contact: lab.momentum.strategy@gmail.com
+- **量能偵測**：不只看價，更看量。捕捉主力進場痕跡。
+- **動能確認**：過濾雜訊，只在動能最強時介入。
+- **歷史驗證**：超過 5 年的完整市場回測數據支持。
+""")
+
+# --- Footer Disclaimer ---
+st.markdown("""
+<div class="disclaimer-box">
+    <strong>⚠️ 免責聲明 (Disclaimer)</strong><br><br>
+    本平台僅供 [技術展示] 與 [學術研究] 用途。所有數據皆為歷史回測結果或模擬演示，非投資建議。<br>
+    金融市場具有高度風險，過去績效不代表未來表現。使用者應自行評估風險，本團隊不對任何交易損失負責。
 </div>
 """, unsafe_allow_html=True)
