@@ -20,6 +20,15 @@ def _send_event_async(url: str, payload: dict) -> None:
         pass
 
 
+
+def get_session_id():
+    """Generate or retrieve a session_id for this session (timestamp)."""
+    if "session_id" not in st.session_state:
+        import time
+        st.session_state.session_id = str(int(time.time()))
+    return st.session_state.session_id
+
+
 def track_event(event_name, params=None):
     """
     Send an event to GA4 via Measurement Protocol (non-blocking).
@@ -38,12 +47,23 @@ def track_event(event_name, params=None):
         return
 
     client_id = get_client_id()
+    session_id = get_session_id()
+    
+    # Enhanced core params for better user tracking
+    core_params = {
+        "session_id": session_id,
+        "engagement_time_msec": "100",  # Critical for 'Active Users' counting
+        "debug_mode": "true",  # Helpful for realtime debugging
+    }
+    
+    # Merge core params with custom params
+    final_params = {**core_params, **(params or {})}
     
     payload = {
         "client_id": client_id,
         "events": [{
             "name": event_name,
-            "params": params or {}
+            "params": final_params
         }]
     }
     
