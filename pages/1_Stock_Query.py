@@ -108,10 +108,10 @@ if selected_ticker:
                   else 'rgba(255,107,53,0.3)' for i in range(1, len(df))]
         colors.insert(0, 'rgba(0,212,170,0.3)')
         
-        mock_volume = df['CLOSE'] * 1000  # Mock volume
+        volume = df['VOLUME']
         fig.add_trace(go.Bar(
             x=df['TRADE_DATE'],
-            y=mock_volume,
+            y=volume,
             marker=dict(color=colors, line=dict(width=0)),
             name="Volume",
             hovertemplate='Vol: %{y:,.0f}<extra></extra>',
@@ -125,25 +125,27 @@ if selected_ticker:
             mode='lines',
             name='High Price',
             line=dict(color='#00d4aa', width=1.5),
-            customdata=df[['CLOSE']].values,
+            customdata=df[['OPEN', 'CLOSE', 'LOW']].values,
             hovertemplate=(
                 'Date: %{x|%Y-%m-%d}<br>'
+                'Open: %{customdata[0]:.2f}<br>'
                 'High: %{y:.2f}<br>'
-                'Close: %{customdata[0]:.2f}'
+                'Low: %{customdata[2]:.2f}<br>'
+                'Close: %{customdata[1]:.2f}'
                 '<extra></extra>'
             )
         ), secondary_y=False)
         
-        # 3. Signal Markers → Orange Vertical Highlight Lines
-        if 'SIGNAL' in df.columns:
-            signal_df = df[df['SIGNAL'] == 1]
+        # 3. FIRST_SIGNAL Markers → Yellow Vertical Lines
+        if 'FIRST_SIGNAL' in df.columns:
+            signal_df = df[df['FIRST_SIGNAL'] == 1]
             if not signal_df.empty:
                 for _, row in signal_df.iterrows():
                     fig.add_vline(
-                        x=row['TRADE_DATE'].timestamp() * 1000,  # Plotly uses ms timestamp
+                        x=row['TRADE_DATE'].timestamp() * 1000,
                         line_width=2,
                         line_dash="solid",
-                        line_color="rgba(255, 107, 53, 0.6)",
+                        line_color="rgba(255, 255, 0, 0.85)",
                         annotation_text="",
                     )
                 
@@ -152,8 +154,32 @@ if selected_ticker:
                     x=[signal_df['TRADE_DATE'].iloc[0]],
                     y=[signal_df['HIGH'].iloc[0]],
                     mode='markers',
-                    marker=dict(size=0.1, color='#ff6b35'),
-                    name='VMR Signal',
+                    marker=dict(size=0.1, color='#ffff00'),
+                    name='First Signal',
+                    showlegend=True,
+                    hoverinfo='skip'
+                ), secondary_y=False)
+        
+        # 4. FOLLOWING_SIGNAL Markers → Blue Vertical Lines
+        if 'FOLLOWING_SIGNAL' in df.columns:
+            follow_df = df[df['FOLLOWING_SIGNAL'] == 1]
+            if not follow_df.empty:
+                for _, row in follow_df.iterrows():
+                    fig.add_vline(
+                        x=row['TRADE_DATE'].timestamp() * 1000,
+                        line_width=2,
+                        line_dash="solid",
+                        line_color="rgba(66, 133, 244, 0.6)",
+                        annotation_text="",
+                    )
+                
+                # Add invisible scatter for legend entry
+                fig.add_trace(go.Scatter(
+                    x=[follow_df['TRADE_DATE'].iloc[0]],
+                    y=[follow_df['HIGH'].iloc[0]],
+                    mode='markers',
+                    marker=dict(size=0.1, color='#4285f4'),
+                    name='Following Signal',
                     showlegend=True,
                     hoverinfo='skip'
                 ), secondary_y=False)
@@ -186,7 +212,7 @@ if selected_ticker:
         fig.update_yaxes(
             title_text="Volume",
             showgrid=False,
-            range=[0, mock_volume.max() * 4],
+            range=[0, volume.max() * 4],
             secondary_y=True
         )
         
@@ -201,12 +227,12 @@ if selected_ticker:
         st.plotly_chart(fig, width="stretch")
         
         # --- Signal History Table ---
-        if 'SIGNAL' in df.columns:
-            signal_df = df[df['SIGNAL'] == 1].copy()
+        if 'FIRST_SIGNAL' in df.columns:
+            signal_df = df[df['FIRST_SIGNAL'] == 1].copy()
             if not signal_df.empty:
                 st.subheader("📊 Signal History")
-                display_df = signal_df[['TRADE_DATE', 'CLOSE', 'HIGH']].copy()
-                display_df.columns = ['Date', 'Close', 'High']
+                display_df = signal_df[['TRADE_DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE']].copy()
+                display_df.columns = ['Date', 'Open', 'High', 'Low', 'Close']
                 display_df['Date'] = display_df['Date'].dt.date
                 display_df = display_df.sort_values('Date', ascending=False).head(10)
                 st.dataframe(

@@ -30,7 +30,7 @@ def get_gsheet_client():
         return None
 
 
-@st.cache_data(ttl=600)  # 快取 10 分鐘
+@st.cache_data(ttl=3600)  # 快取 1 小時 (資料為 daily refresh)
 def get_all_data() -> pd.DataFrame:
     """取得所有股價資料"""
     client = get_gsheet_client()
@@ -53,7 +53,7 @@ def get_all_data() -> pd.DataFrame:
         return pd.DataFrame()
 
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=3600)
 def get_ticker_list() -> List[str]:
     """取得所有股票代號"""
     df = get_all_data()
@@ -62,7 +62,7 @@ def get_ticker_list() -> List[str]:
     return sorted(df['TICKER'].unique().tolist())
 
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=3600)
 def get_stock_data(ticker: str) -> pd.DataFrame:
     """取得單一股票資料"""
     df = get_all_data()
