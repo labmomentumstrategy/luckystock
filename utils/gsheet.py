@@ -63,6 +63,26 @@ def get_ticker_list() -> List[str]:
 
 
 @st.cache_data(ttl=3600)
+def get_ticker_list_by_exchange(exchange: str) -> List[str]:
+    """
+    依交易所過濾股票代號列表。
+
+    Args:
+        exchange (str): 'twse' 或 'tpex'（不區分大小寫）
+
+    Returns:
+        List[str]: 該交易所的股票代號列表（排序後）
+    """
+    df = get_all_data()
+    if df.empty or 'TICKER' not in df.columns or 'EXCHANGE' not in df.columns:
+        # EXCHANGE 欄位不存在時 fallback 到全部 ticker
+        return get_ticker_list()
+
+    filtered = df[df['EXCHANGE'].str.lower() == exchange.lower()]
+    return sorted(filtered['TICKER'].unique().tolist())
+
+
+@st.cache_data(ttl=3600)
 def get_stock_data(ticker: str) -> pd.DataFrame:
     """取得單一股票資料"""
     df = get_all_data()
@@ -90,15 +110,48 @@ def get_summary_stats() -> dict:
 def get_stock_info(ticker: str) -> dict:
     """
     取得個股基本資訊 (Score Cards 用)
-    TODO: 未來從另一個 Google Sheet 讀取，目前回傳 Dummy Data
+    從 get_all_data() 中過濾出該個股的資料並提取資訊
     """
-    return {
-        "stock_name": "康恩貝",
-        "industry": "中藥",
-        "latest_price_date": "2026-01-30",
-        "first_tag_count_2yr": 8,
-        "win_rate_5pct": 75.00,
-        "no_higher_pct": 12.50,
+    df = get_all_data()
+    
+    # 預設值 (Mock Data placeholder for calculated indicators)
+    info = {
+        "stock_name": "Unknown",
+        "industry": "Unknown",
+        "latest_price_date": "N/A",
+        "first_tag_count_2yr": "--",
+        "win_rate_5pct": "--",
+        "no_higher_pct": "--",
         "tags_in_5days": 0
     }
+    
+    if df.empty or 'TICKER' not in df.columns:
+        return info
+
+    # 過濾出該股票的資料 (確保 ticker 格式一致)
+    stock_df = df[df['TICKER'].astype(str) == str(ticker)]
+    
+    if not stock_df.empty:
+        # 1. 股票名稱
+        if 'STOCK_NAME' in stock_df.columns:
+            val = stock_df['STOCK_NAME'].iloc[0]
+            info["stock_name"] = val if pd.notna(val) else "Unknown"
+        
+        # 2. 行業板塊
+        if 'INDUSTRY_CATEGORY' in stock_df.columns:
+            val = stock_df['INDUSTRY_CATEGORY'].iloc[0]
+            info["industry"] = val if pd.notna(val) else "Unknown"
+            
+        # 3. 最新價格日 (max TRADE_DATE)
+        if 'TRADE_DATE' in stock_df.columns:
+            max_date = stock_df['TRADE_DATE'].max()
+            info["latest_price_date"] = max_date.strftime('%Y-%m-%d') if pd.notna(max_date) else "N/A"
+
+    # --- 以下為暫時保留的 Mock Data (未來可進階計算) ---
+    info["first_tag_count_2yr"] = 8
+    info["win_rate_5pct"] = 75.00
+    info["no_higher_pct"] = 12.50
+    info["tags_in_5days"] = 0
+    
+    return info
 

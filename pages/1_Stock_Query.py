@@ -6,7 +6,7 @@ import streamlit as st
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from utils.gsheet import get_ticker_list, get_stock_data, get_stock_info
+from utils.gsheet import get_ticker_list_by_exchange, get_stock_data, get_stock_info
 from utils.analytics import track_page_view
 from utils.ui import load_css, render_sidebar
 
@@ -29,8 +29,18 @@ render_sidebar()
 # --- Main Area ---
 st.markdown("### 📈 Stock Scanner")
 
+# --- Exchange Toggle ---
+exchange = st.radio(
+    "Exchange | 交易所",
+    options=["twse", "tpex"],
+    index=0,  # default: TWSE
+    format_func=lambda x: "🏛 TWSE 上市" if x == "twse" else "📊 TPEX 上櫃",
+    horizontal=True,
+    key="exchange_toggle"
+)
+
 # Row 1: Ticker Filter (col1) + Score Cards (col2-4)
-tickers = get_ticker_list()
+tickers = get_ticker_list_by_exchange(exchange)
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     if tickers:
@@ -145,7 +155,7 @@ if selected_ticker:
                         x=row['TRADE_DATE'].timestamp() * 1000,
                         line_width=2,
                         line_dash="solid",
-                        line_color="rgba(255, 255, 0, 0.85)",
+                        line_color="rgba(255, 0, 0, 0.9)",
                         annotation_text="",
                     )
                 
@@ -154,7 +164,7 @@ if selected_ticker:
                     x=[signal_df['TRADE_DATE'].iloc[0]],
                     y=[signal_df['HIGH'].iloc[0]],
                     mode='markers',
-                    marker=dict(size=0.1, color='#ffff00'),
+                    marker=dict(size=0.1, color='#FF0000'),
                     name='First Signal',
                     showlegend=True,
                     hoverinfo='skip'

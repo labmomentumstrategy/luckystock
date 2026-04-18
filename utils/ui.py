@@ -10,8 +10,8 @@ def load_css(file_name="assets/style.css"):
     Args:
         file_name (str): Relative path to the CSS file (e.g., "assets/style.css")
     """
-    # Assuming the app runs from the root directory 'luckystock'
-    css_path = Path(file_name)
+    # Use absolute path based on this file's location to avoid CWD issues
+    css_path = Path(__file__).parent.parent / file_name
     
     if css_path.exists():
         with open(css_path) as f:
@@ -33,16 +33,9 @@ def render_sidebar():
         st.page_link("pages/1_Stock_Query.py", label="Stock Scanner", icon="📈")
 
         st.markdown("---")
-        st.info("💡 **Pro Tip**: Use 'Scanner' to find breakout stocks in real-time.")
+        st.info("💡 **Pro Tip**: 使用 'Scanner'來幫你的持股動能健檢。")
 
-        st.markdown("---")
 
-        # CTA Section
-        st.success("#### 🚀 Get Real-time Signals")
-        st.markdown("想要獲取盤中即時訊號推播？加入我們的 Telegram 專屬頻道。")
-        st.link_button("👉 Join Premium Channel", "https://t.me/your_channel_link", type="primary")
-
-        st.markdown("---")
 
         st.markdown("#### 📺 Learn More")
         st.markdown("觀看 YouTube 教學影片，了解如何使用此工具。")
