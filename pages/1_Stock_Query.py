@@ -100,10 +100,14 @@ if selected_ticker:
 <div class="card-sub">訊號後沒有更高機率</div>
 </div>""", unsafe_allow_html=True)
     with col8:
+        tags_5d = info['tags_in_5days']
+        val_class = " val-accent" if tags_5d >= 5 else ""
+        color_attr = ' style="color: #FF0000;"' if 3 <= tags_5d <= 4 else ""
+        
         st.markdown(f"""
 <div class="stock-info-card">
 <div class="card-label">Tags in 5 Days</div>
-<div class="card-value">{info['tags_in_5days']}</div>
+<div class="card-value{val_class}"{color_attr}>{tags_5d}</div>
 <div class="card-sub">近五個交易日標籤數</div>
 </div>""", unsafe_allow_html=True)
 

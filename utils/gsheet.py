@@ -132,6 +132,8 @@ def get_stock_info(ticker: str) -> dict:
     stock_df = df[df['TICKER'].astype(str) == str(ticker)]
     
     if not stock_df.empty:
+        stock_df = stock_df.sort_values('TRADE_DATE', ascending=False)
+        
         # 1. 股票名稱
         if 'STOCK_NAME' in stock_df.columns:
             val = stock_df['STOCK_NAME'].iloc[0]
@@ -146,12 +148,18 @@ def get_stock_info(ticker: str) -> dict:
         if 'TRADE_DATE' in stock_df.columns:
             max_date = stock_df['TRADE_DATE'].max()
             info["latest_price_date"] = max_date.strftime('%Y-%m-%d') if pd.notna(max_date) else "N/A"
+            
+        # 4. 近五日標籤數 (Tags in 5 Days)
+        if 'FIRST_SIGNAL' in stock_df.columns and 'FOLLOWING_SIGNAL' in stock_df.columns:
+            recent_5d = stock_df.head(5)
+            # 計算有任何訊號的天數
+            signal_count = int(((recent_5d['FIRST_SIGNAL'] == 1) | (recent_5d['FOLLOWING_SIGNAL'] == 1)).sum())
+            info["tags_in_5days"] = signal_count
 
     # --- 以下為暫時保留的 Mock Data (未來可進階計算) ---
     info["first_tag_count_2yr"] = 8
     info["win_rate_5pct"] = 75.00
     info["no_higher_pct"] = 12.50
-    info["tags_in_5days"] = 0
     
     return info
 

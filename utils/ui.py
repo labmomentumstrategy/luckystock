@@ -39,7 +39,13 @@ def render_sidebar():
 
         st.markdown("#### 📺 Learn More")
         st.markdown("觀看 YouTube 教學影片，了解如何使用此工具。")
-        st.link_button("▶️ Watch Tutorial", "https://youtube.com/your_channel_link")
+        st.link_button("▶️ Watch Tutorial", "https://youtube.com/your_channel_link", use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("#### ☕ Support Us")
+        st.markdown("如果這個工具對您有幫助，歡迎自由贊助我們開發團隊！")
+        # FFF6PD4JJ2SN8 extracted from the user's PayPal screenshot
+        st.link_button("☕ 贊助一杯咖啡", "https://www.paypal.com/ncp/payment/FFF6PD4JJ2SN8", type="primary", use_container_width=True)
 
         # --- Version ---
         st.markdown("---")
