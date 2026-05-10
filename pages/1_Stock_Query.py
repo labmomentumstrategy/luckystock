@@ -130,7 +130,7 @@ if selected_ticker:
             name="Volume",
             hovertemplate='Vol: %{y:,.0f}<extra></extra>',
             opacity=0.5
-        ), secondary_y=True)
+        ), secondary_y=False)
         
         # 2. Candlestick Chart (OHLC) - TradingView style
         fig.add_trace(go.Candlestick(
@@ -144,7 +144,7 @@ if selected_ticker:
             decreasing_line_color='#ff6b35',
             decreasing_fillcolor='#ff6b35',
             name='OHLC',
-        ), secondary_y=False)
+        ), secondary_y=True)
         
         # 2b. Moving Averages
         ma_config = [
@@ -162,7 +162,7 @@ if selected_ticker:
                     name=label,
                     line=dict(color=color, width=1.2),
                     hovertemplate=f'{label}: ' + '%{y:.2f}<extra></extra>',
-                ), secondary_y=False)
+                ), secondary_y=True)
         
         # 3. FIRST_SIGNAL Markers → Yellow Vertical Lines
         if 'FIRST_SIGNAL' in df.columns:
@@ -225,22 +225,27 @@ if selected_ticker:
             margin=dict(l=50, r=50, t=30, b=50)
         )
         
-        # Y-axis styling
+        # Y-axis styling (Price on the Right)
         fig.update_yaxes(
             title_text="Price",
             showgrid=True,
             gridcolor='rgba(42,46,57,0.5)',
             gridwidth=1,
-            title_font=dict(size=12, color="#6b7280"),
-            tickfont=dict(size=10, color="#6b7280"),
-            secondary_y=False
+            title_font=dict(size=12, color="#ffffff"),
+            tickfont=dict(size=10, color="#ffffff"),
+            side="right",
+            secondary_y=True
         )
         
+        # Y-axis styling (Volume on the Left)
         fig.update_yaxes(
             title_text="Volume",
             showgrid=False,
             range=[0, volume.max() * 4],
-            secondary_y=True
+            title_font=dict(size=12, color="#ffffff"),
+            tickfont=dict(size=10, color="#ffffff"),
+            side="left",
+            secondary_y=False
         )
         
         # X-axis styling
@@ -248,7 +253,7 @@ if selected_ticker:
             showgrid=True,
             gridcolor='rgba(42,46,57,0.5)',
             gridwidth=1,
-            tickfont=dict(size=10, color="#6b7280")
+            tickfont=dict(size=10, color="#ffffff")
         )
         
         st.plotly_chart(fig, width="stretch")
