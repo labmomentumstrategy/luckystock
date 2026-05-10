@@ -150,7 +150,7 @@ if selected_ticker:
         ma_config = [
             (21,  '#ef5350', '21 MA'),   # soft red
             (144, '#66bb6a', '144 MA'),   # emerald green
-            (233, '#ffca28', '233 MA'),   # amber gold
+            (55, '#ffca28', '55 MA'),   # amber gold
         ]
         for period, color, label in ma_config:
             if len(df) >= period:
@@ -258,20 +258,7 @@ if selected_ticker:
         
         st.plotly_chart(fig, width="stretch")
         
-        # --- Signal History Table ---
-        if 'FIRST_SIGNAL' in df.columns:
-            signal_df = df[df['FIRST_SIGNAL'] == 1].copy()
-            if not signal_df.empty:
-                st.subheader("📊 Signal History")
-                display_df = signal_df[['TRADE_DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE']].copy()
-                display_df.columns = ['Date', 'Open', 'High', 'Low', 'Close']
-                display_df['Date'] = display_df['Date'].dt.date
-                display_df = display_df.sort_values('Date', ascending=False).head(10)
-                st.dataframe(
-                    display_df, 
-                    width="stretch",
-                    hide_index=True
-                )
+
     else:
         st.error(f"Failed to load data for {selected_ticker}")
 else:
