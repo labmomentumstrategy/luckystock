@@ -132,23 +132,37 @@ if selected_ticker:
             opacity=0.5
         ), secondary_y=True)
         
-        # 2. Line Chart (HIGH price)
-        fig.add_trace(go.Scatter(
+        # 2. Candlestick Chart (OHLC) - TradingView style
+        fig.add_trace(go.Candlestick(
             x=df['TRADE_DATE'],
-            y=df['HIGH'],
-            mode='lines',
-            name='High Price',
-            line=dict(color='#00d4aa', width=1.5),
-            customdata=df[['OPEN', 'CLOSE', 'LOW']].values,
-            hovertemplate=(
-                'Date: %{x|%Y-%m-%d}<br>'
-                'Open: %{customdata[0]:.2f}<br>'
-                'High: %{y:.2f}<br>'
-                'Low: %{customdata[2]:.2f}<br>'
-                'Close: %{customdata[1]:.2f}'
-                '<extra></extra>'
-            )
+            open=df['OPEN'],
+            high=df['HIGH'],
+            low=df['LOW'],
+            close=df['CLOSE'],
+            increasing_line_color='#00d4aa',
+            increasing_fillcolor='#00d4aa',
+            decreasing_line_color='#ff6b35',
+            decreasing_fillcolor='#ff6b35',
+            name='OHLC',
         ), secondary_y=False)
+        
+        # 2b. Moving Averages
+        ma_config = [
+            (21,  '#ef5350', '21 MA'),   # soft red
+            (144, '#66bb6a', '144 MA'),   # emerald green
+            (233, '#ffca28', '233 MA'),   # amber gold
+        ]
+        for period, color, label in ma_config:
+            if len(df) >= period:
+                ma_series = df['CLOSE'].rolling(window=period).mean()
+                fig.add_trace(go.Scatter(
+                    x=df['TRADE_DATE'],
+                    y=ma_series,
+                    mode='lines',
+                    name=label,
+                    line=dict(color=color, width=1.2),
+                    hovertemplate=f'{label}: ' + '%{y:.2f}<extra></extra>',
+                ), secondary_y=False)
         
         # 3. FIRST_SIGNAL Markers → Yellow Vertical Lines
         if 'FIRST_SIGNAL' in df.columns:
@@ -214,7 +228,7 @@ if selected_ticker:
         
         # Y-axis styling
         fig.update_yaxes(
-            title_text="High Price",
+            title_text="Price",
             showgrid=True,
             gridcolor='rgba(42,46,57,0.5)',
             gridwidth=1,
