@@ -57,49 +57,28 @@ if selected_ticker:
     with col2:
         st.markdown(f"""
 <div class="stock-info-card">
+<div class="card-label">Latest Price Date</div>
+<div class="card-value">{info['latest_price_date']}</div>
+<div class="card-sub">最新價格日</div>
+</div>""", unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+<div class="stock-info-card">
 <div class="card-label">Stock Name</div>
 <div class="card-value">{info['stock_name']}</div>
 <div class="card-sub">股票名稱</div>
 </div>""", unsafe_allow_html=True)
-    with col3:
+    with col4:
         st.markdown(f"""
 <div class="stock-info-card">
 <div class="card-label">Industry</div>
 <div class="card-value">{info['industry']}</div>
 <div class="card-sub">行業板塊</div>
 </div>""", unsafe_allow_html=True)
-    with col4:
-        st.markdown(f"""
-<div class="stock-info-card">
-<div class="card-label">Latest Price Date</div>
-<div class="card-value">{info['latest_price_date']}</div>
-<div class="card-sub">最新價格日</div>
-</div>""", unsafe_allow_html=True)
 
-    # Row 2: Performance Metrics
+    # Row 2: CB Metrics
     col5, col6, col7, col8 = st.columns(4)
     with col5:
-        st.markdown(f"""
-<div class="stock-info-card">
-<div class="card-label">Tags in Past 2yrs</div>
-<div class="card-value val-accent">{info['first_tag_count_2yr']}</div>
-<div class="card-sub">過去兩年訊號次數</div>
-</div>""", unsafe_allow_html=True)
-    with col6:
-        st.markdown(f"""
-<div class="stock-info-card">
-<div class="card-label">Win Rate (&gt;5%)</div>
-<div class="card-value val-accent">{info['win_rate_5pct']}%</div>
-<div class="card-sub">訊號後上漲&gt;5%機率</div>
-</div>""", unsafe_allow_html=True)
-    with col7:
-        st.markdown(f"""
-<div class="stock-info-card">
-<div class="card-label">No Higher Price %</div>
-<div class="card-value">{info['no_higher_pct']}%</div>
-<div class="card-sub">訊號後沒有更高機率</div>
-</div>""", unsafe_allow_html=True)
-    with col8:
         tags_5d = info['tags_in_5days']
         val_class = " val-accent" if tags_5d >= 5 else ""
         color_attr = ' style="color: #FF0000;"' if 3 <= tags_5d <= 4 else ""
@@ -109,6 +88,27 @@ if selected_ticker:
 <div class="card-label">Tags in 5 Days</div>
 <div class="card-value{val_class}"{color_attr}>{tags_5d}</div>
 <div class="card-sub">近五個交易日標籤數</div>
+</div>""", unsafe_allow_html=True)
+    with col6:
+        st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">Conversion Rate</div>
+<div class="card-value">--</div>
+<div class="card-sub">轉換價格</div>
+</div>""", unsafe_allow_html=True)
+    with col7:
+        st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">Remaining Days</div>
+<div class="card-value">--</div>
+<div class="card-sub">剩餘天數</div>
+</div>""", unsafe_allow_html=True)
+    with col8:
+        st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">Issue Amount</div>
+<div class="card-value">--</div>
+<div class="card-sub">發行金額</div>
 </div>""", unsafe_allow_html=True)
 
     # --- Chart ---
@@ -222,8 +222,7 @@ if selected_ticker:
             hovermode='x unified',
             font=dict(family="JetBrains Mono"),
             legend=dict(orientation="h", y=1.02, x=0, xanchor="left", yanchor="bottom"),
-            margin=dict(l=50, r=50, t=30, b=50),
-            title=dict(text=f"{selected_ticker} Price Action", x=0.5, font=dict(size=16))
+            margin=dict(l=50, r=50, t=30, b=50)
         )
         
         # Y-axis styling
