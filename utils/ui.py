@@ -32,17 +32,6 @@ def render_sidebar():
         st.page_link("app.py", label="Observatory (Home)", icon="🔭")
         st.page_link("pages/1_Stock_Query.py", label="Stock Scanner", icon="📈")
 
-        st.markdown("---")
-        st.info("💡 **Pro Tip**: 使用 'Scanner'來幫你的持股動能健檢。")
-
-
-
-        st.markdown("#### 📺 Learn More")
-        st.markdown("觀看 YouTube 教學影片，了解如何使用此工具。")
-        st.link_button("▶️ Watch Tutorial", "https://youtube.com/your_channel_link", use_container_width=True)
-
-
-
         # --- Version ---
         st.markdown("---")
         try:

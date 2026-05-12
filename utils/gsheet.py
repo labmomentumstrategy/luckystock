@@ -163,3 +163,76 @@ def get_stock_info(ticker: str) -> dict:
     
     return info
 
+
+# =====================================================
+# Convertible Bond (CB) GSheet Functions
+# =====================================================
+
+def _get_cb_spreadsheet_id() -> str:
+    """Lazy-load CB Spreadsheet ID from secrets."""
+    return st.secrets.get("gsheet", {}).get("cb_spreadsheet_id", "")
+
+
+@st.cache_data(ttl=3600)
+def get_all_cb_data() -> pd.DataFrame:
+    """取得所有可轉債資料 (from CB GSheet)"""
+    client = get_gsheet_client()
+    if not client:
+        return pd.DataFrame()
+
+    cb_sheet_id = _get_cb_spreadsheet_id()
+    if not cb_sheet_id:
+        st.warning("CB GSheet ID 未設定，請檢查 secrets.toml")
+        return pd.DataFrame()
+
+    try:
+        spreadsheet = client.open_by_key(cb_sheet_id)
+        worksheet = spreadsheet.get_worksheet(0)
+        data = worksheet.get_all_records()
+        df = pd.DataFrame(data)
+
+        # 轉換日期欄位
+        if 'TRADE_DATE' in df.columns:
+            df['TRADE_DATE'] = pd.to_datetime(df['TRADE_DATE'])
+
+        # 轉換數值欄位 (GSheet 可能回傳字串)
+        numeric_cols = ['CONVERTED_PERCENTAGE', 'CONVERSION_PREMIUM_RATE',
+                        'CONVERSION_VALUE', 'REFERENCE_PRICE',
+                        'PRICE_OF_UNDERLYING_STOCK', 'CONVERSION_PRICE']
+        for col in numeric_cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+
+        return df
+    except Exception as e:
+        st.error(f"讀取 CB 資料錯誤: {e}")
+        return pd.DataFrame()
+
+
+@st.cache_data(ttl=3600)
+def get_cb_ids_by_ticker(ticker: str) -> List[str]:
+    """
+    用股票代號 fuzzy match CB_ID。
+    台灣 CB 命名慣例: 股票代號 + 序號 (e.g., 2330 → 23301, 23302)
+    """
+    df = get_all_cb_data()
+    if df.empty or 'CB_ID' not in df.columns:
+        return []
+
+    # 純數字 ticker prefix match
+    ticker_str = str(ticker).strip()
+    matched = df[df['CB_ID'].astype(str).str.startswith(ticker_str)]
+    return sorted(matched['CB_ID'].astype(str).unique().tolist())
+
+
+@st.cache_data(ttl=3600)
+def get_cb_daily_data(cb_id: str) -> pd.DataFrame:
+    """取得指定 CB_ID 的每日資料，依 TRADE_DATE 排序"""
+    df = get_all_cb_data()
+    if df.empty or 'CB_ID' not in df.columns:
+        return pd.DataFrame()
+
+    cb_df = df[df['CB_ID'].astype(str) == str(cb_id)].copy()
+    if not cb_df.empty:
+        cb_df = cb_df.sort_values('TRADE_DATE')
+    return cb_df

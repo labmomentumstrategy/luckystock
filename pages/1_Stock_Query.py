@@ -3,16 +3,18 @@ VMR 觀察站 - 個股 K 線圖
 PRO VERSION DEMO
 """
 import streamlit as st
+import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from utils.gsheet import get_ticker_list_by_exchange, get_stock_data, get_stock_info
+from utils.gsheet import get_ticker_list, get_stock_data, get_stock_info
+from utils.gsheet import get_cb_ids_by_ticker, get_cb_daily_data
 from utils.analytics import track_page_view
 from utils.ui import load_css, render_sidebar
 
 # --- Page Configuration (MUST be first st.* call) ---
 st.set_page_config(
-    page_title="個股 K 線圖 | VMR 觀察站",
+    page_title="Stock Scanner | VMR Observatory",
     page_icon="📈",
     layout="wide"
 )
@@ -29,92 +31,60 @@ render_sidebar()
 # --- Main Area ---
 st.markdown("### 📈 Stock Scanner")
 
-# --- Exchange Toggle ---
-exchange = st.radio(
-    "Exchange | 交易所",
-    options=["twse", "tpex"],
-    index=0,  # default: TWSE
-    format_func=lambda x: "🏛 TWSE 上市" if x == "twse" else "📊 TPEX 上櫃",
-    horizontal=True,
-    key="exchange_toggle"
-)
+# Layout: Ticker Select + Score Cards
+tickers = get_ticker_list()
+row1_cols = st.columns(5)
 
-# Row 1: Ticker Filter (col1) + Score Cards (col2-4)
-tickers = get_ticker_list_by_exchange(exchange)
-col1, col2, col3, col4 = st.columns(4)
-with col1:
+with row1_cols[0]:
     if tickers:
-        selected_ticker = st.selectbox("Ticker | 股票代號", tickers, index=0)
+        selected_ticker = st.selectbox("Ticker", tickers, index=0)
     else:
         st.warning("No data")
         selected_ticker = None
 
-# Score Cards (using get_stock_info dummy data)
 if selected_ticker:
     info = get_stock_info(selected_ticker)
     
-    # Fill remaining cols in Row 1
-    with col2:
+    with row1_cols[1]:
         st.markdown(f"""
 <div class="stock-info-card">
 <div class="card-label">Latest Price Date</div>
 <div class="card-value">{info['latest_price_date']}</div>
-<div class="card-sub">最新價格日</div>
 </div>""", unsafe_allow_html=True)
-    with col3:
+        
+    with row1_cols[2]:
         st.markdown(f"""
 <div class="stock-info-card">
 <div class="card-label">Stock Name</div>
 <div class="card-value">{info['stock_name']}</div>
-<div class="card-sub">股票名稱</div>
 </div>""", unsafe_allow_html=True)
-    with col4:
+        
+    with row1_cols[3]:
         st.markdown(f"""
 <div class="stock-info-card">
 <div class="card-label">Industry</div>
 <div class="card-value">{info['industry']}</div>
-<div class="card-sub">行業板塊</div>
 </div>""", unsafe_allow_html=True)
 
-    # Row 2: CB Metrics
-    col5, col6, col7, col8 = st.columns(4)
-    with col5:
+    with row1_cols[4]:
         tags_5d = info['tags_in_5days']
         val_class = " val-accent" if tags_5d >= 5 else ""
         color_attr = ' style="color: #FF0000;"' if 3 <= tags_5d <= 4 else ""
-        
         st.markdown(f"""
 <div class="stock-info-card">
 <div class="card-label">Tags in 5 Days</div>
 <div class="card-value{val_class}"{color_attr}>{tags_5d}</div>
-<div class="card-sub">近五個交易日標籤數</div>
 </div>""", unsafe_allow_html=True)
-    with col6:
-        st.markdown(f"""
-<div class="stock-info-card">
-<div class="card-label">Conversion Rate</div>
-<div class="card-value">--</div>
-<div class="card-sub">轉換價格</div>
-</div>""", unsafe_allow_html=True)
-    with col7:
-        st.markdown(f"""
-<div class="stock-info-card">
-<div class="card-label">Remaining Days</div>
-<div class="card-value">--</div>
-<div class="card-sub">剩餘天數</div>
-</div>""", unsafe_allow_html=True)
-    with col8:
-        st.markdown(f"""
-<div class="stock-info-card">
-<div class="card-label">Issue Amount</div>
-<div class="card-value">--</div>
-<div class="card-sub">發行金額</div>
-</div>""", unsafe_allow_html=True)
+
+
 
     # --- Chart ---
     df = get_stock_data(selected_ticker)
     
     if not df.empty:
+        stock_date_min = df['TRADE_DATE'].min()
+        stock_date_max = df['TRADE_DATE'].max()
+
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         
         # 1. Volume Bar Chart (behind the line)
@@ -253,13 +223,227 @@ if selected_ticker:
             showgrid=True,
             gridcolor='rgba(42,46,57,0.5)',
             gridwidth=1,
-            tickfont=dict(size=10, color="#ffffff")
+            tickfont=dict(size=10, color="#ffffff"),
+            range=[stock_date_min, stock_date_max],
+            rangebreaks=[dict(bounds=["sat", "mon"])]  # skip weekends
         )
         
         st.plotly_chart(fig, width="stretch")
-        
 
     else:
         st.error(f"Failed to load data for {selected_ticker}")
+
+    # =========================================================
+    # Convertible Bond (CB) Section
+    # =========================================================
+    st.markdown("### 🔄 Convertible Bond")
+
+    cb_ids = get_cb_ids_by_ticker(selected_ticker)
+
+    if cb_ids:
+        # --- CB Cards Row 1 ---
+        cb_cols1 = st.columns(5)
+        
+        with cb_cols1[0]:
+            selected_cb = st.selectbox(
+                "CB ID",
+                cb_ids,
+                index=0,
+                key="cb_id_selector"
+            )
+
+        # Fetch and process data before rendering the other cards
+        cb_df = get_cb_daily_data(selected_cb)
+        
+        # Initialize default values
+        v_cb_price = "--"
+        v_conv_val = "--"
+        v_conv_prem = "--"
+        v_due_date = "--"
+        v_conv_rate = "--"
+        v_rem_days = "--"
+        v_issue_amt = "--"
+        cb_name = ""
+
+        if not cb_df.empty:
+            if 'CB_NAME' in cb_df.columns:
+                cb_name = cb_df['CB_NAME'].iloc[0]
+                
+            # Filter CB data to stock date range for the chart and latest data
+            if not df.empty:
+                cb_df = cb_df[
+                    (cb_df['TRADE_DATE'] >= stock_date_min) &
+                    (cb_df['TRADE_DATE'] <= stock_date_max)
+                ]
+            
+            if not cb_df.empty:
+                # Add display column for chart
+                if 'CONVERTED_PERCENTAGE' in cb_df.columns:
+                    cb_df['UNCONVERTED_PCT_DISPLAY'] = (1 - cb_df['CONVERTED_PERCENTAGE']) * 100
+
+                # Get latest row for score cards
+                latest_row = cb_df.loc[cb_df['TRADE_DATE'].idxmax()]
+                
+                if 'REFERENCE_PRICE' in latest_row and pd.notna(latest_row['REFERENCE_PRICE']):
+                    v_cb_price = f"{latest_row['REFERENCE_PRICE']:.2f}"
+                if 'CONVERSION_VALUE' in latest_row and pd.notna(latest_row['CONVERSION_VALUE']):
+                    v_conv_val = f"{latest_row['CONVERSION_VALUE']:.2f}"
+                if 'CONVERSION_PREMIUM_RATE' in latest_row and pd.notna(latest_row['CONVERSION_PREMIUM_RATE']):
+                    v_conv_prem = f"{latest_row['CONVERSION_PREMIUM_RATE']*100:.2f}%"
+                if 'DUE_DATE_OF_CONVERSION' in latest_row and pd.notna(latest_row['DUE_DATE_OF_CONVERSION']):
+                    try:
+                        v_due_date = latest_row['DUE_DATE_OF_CONVERSION'].strftime('%Y-%m-%d')
+                    except:
+                        v_due_date = str(latest_row['DUE_DATE_OF_CONVERSION'])[:10]
+                if 'CONVERTED_PERCENTAGE' in latest_row and pd.notna(latest_row['CONVERTED_PERCENTAGE']):
+                    v_conv_rate = f"{latest_row['CONVERTED_PERCENTAGE']*100:.2f}%"
+                if 'REMAINING_DAYS' in latest_row and pd.notna(latest_row['REMAINING_DAYS']):
+                    v_rem_days = str(int(latest_row['REMAINING_DAYS']))
+                if 'ISSUANCE_AMOUNT' in latest_row and pd.notna(latest_row['ISSUANCE_AMOUNT']):
+                    try:
+                        v_issue_amt = f"{float(latest_row['ISSUANCE_AMOUNT']) / 1e9:,.2f} B"
+                    except:
+                        v_issue_amt = str(latest_row['ISSUANCE_AMOUNT'])
+
+        with cb_cols1[1]:
+            st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">CB Price</div>
+<div class="card-value">{v_cb_price}</div>
+</div>""", unsafe_allow_html=True)
+
+        with cb_cols1[2]:
+            st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">Conversion Value</div>
+<div class="card-value">{v_conv_val}</div>
+</div>""", unsafe_allow_html=True)
+
+        with cb_cols1[3]:
+            st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">Conversion Premium</div>
+<div class="card-value">{v_conv_prem}</div>
+</div>""", unsafe_allow_html=True)
+
+        with cb_cols1[4]:
+            st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">Due Date of Conv</div>
+<div class="card-value">{v_due_date}</div>
+</div>""", unsafe_allow_html=True)
+
+        # --- CB Cards Row 2 ---
+        cb_cols2 = st.columns(5)
+        
+        with cb_cols2[0]:
+            st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">Conversion Rate</div>
+<div class="card-value">{v_conv_rate}</div>
+</div>""", unsafe_allow_html=True)
+            
+        with cb_cols2[1]:
+            st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">Remaining Days</div>
+<div class="card-value">{v_rem_days}</div>
+</div>""", unsafe_allow_html=True)
+            
+        with cb_cols2[2]:
+            st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">Issue Amount</div>
+<div class="card-value">{v_issue_amt}</div>
+</div>""", unsafe_allow_html=True)
+
+        if not cb_df.empty and 'UNCONVERTED_PCT_DISPLAY' in cb_df.columns:
+
+            fig_cb = make_subplots(specs=[[{"secondary_y": True}]])
+            fig_cb.add_trace(go.Bar(
+                x=cb_df['TRADE_DATE'],
+                y=cb_df['UNCONVERTED_PCT_DISPLAY'],
+                marker=dict(
+                    color=cb_df['UNCONVERTED_PCT_DISPLAY'],
+                    colorscale=[
+                        [0.0, '#ff6b35'],
+                        [0.3, '#ffca28'],
+                        [0.6, '#66bb6a'],
+                        [0.8, '#00bcd4'],
+                        [1.0, '#1a237e']
+                    ],
+                    line=dict(width=0)
+                ),
+                name='Unconverted %',
+                showlegend=False,
+                hovertemplate='Date: %{x|%Y-%m-%d}<br>Unconverted: %{y:.2f}%<extra></extra>',
+            ), secondary_y=False)
+
+            # Add CB Price (REFERENCE_PRICE) on secondary Y-axis
+            if 'REFERENCE_PRICE' in cb_df.columns:
+                fig_cb.add_trace(go.Scatter(
+                    x=cb_df['TRADE_DATE'],
+                    y=cb_df['REFERENCE_PRICE'],
+                    mode='lines',
+                    name='CB Price',
+                    line=dict(color='#ffffff', width=2),
+                    hovertemplate='CB Price: %{y:.2f}<extra></extra>',
+                    showlegend=False
+                ), secondary_y=True)
+
+            fig_cb.update_layout(
+                title=dict(
+                    text=f"{selected_cb} {cb_name} — Unconverted (%) & CB Price",
+                    font=dict(size=14, color="#ffffff")
+                ),
+                height=380,
+                template="plotly_dark",
+                paper_bgcolor="#0a0e17",
+                plot_bgcolor="#0a0e17",
+                hovermode='x unified',
+                font=dict(family="JetBrains Mono"),
+                margin=dict(l=50, r=50, t=50, b=50),
+                bargap=0.15
+            )
+
+            fig_cb.update_xaxes(
+                showgrid=True,
+                gridcolor='rgba(42,46,57,0.5)',
+                gridwidth=1,
+                tickfont=dict(size=10, color="#ffffff"),
+                range=[stock_date_min, stock_date_max] if not df.empty else None,
+                rangebreaks=[dict(bounds=["sat", "mon"])]  # skip weekends
+            )
+
+            # Left Y-axis: Unconverted %
+            fig_cb.update_yaxes(
+                title_text="Unconverted %",
+                showgrid=True,
+                gridcolor='rgba(42,46,57,0.5)',
+                gridwidth=1,
+                title_font=dict(size=12, color="#ffffff"),
+                tickfont=dict(size=10, color="#ffffff"),
+                ticksuffix="%",
+                range=[0, 100],
+                side="left",
+                secondary_y=False
+            )
+
+            # Right Y-axis: CB Price
+            fig_cb.update_yaxes(
+                title_text="CB Price",
+                showgrid=False,
+                showticklabels=True,
+                title_font=dict(size=12, color="#ffffff"),
+                tickfont=dict(size=10, color="#ffffff"),
+                side="right",
+                secondary_y=True
+            )
+
+            st.plotly_chart(fig_cb, use_container_width=True)
+        else:
+            st.info(f"No CONVERTED_PERCENTAGE data for {selected_cb}")
+    else:
+        st.info(f"No convertible bonds found for ticker {selected_ticker}")
 else:
     st.info("👈 Select a stock from the dropdown above to begin analysis.")

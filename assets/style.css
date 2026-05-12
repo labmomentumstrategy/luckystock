@@ -182,19 +182,20 @@ div[data-testid="metric-container"]:hover {
 /* --- Stock Info Score Cards --- */
 .stock-info-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 12px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 .stock-info-card {
     background: rgba(19, 23, 34, 0.8);
     border: 1px solid #1e222d;
     border-radius: 8px;
-    padding: 14px 16px;
+    padding: 10px 12px;
     text-align: center;
     transition: all 0.3s ease;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
+    height: 100%;
 }
 
 .stock-info-card:hover {
