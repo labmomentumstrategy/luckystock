@@ -59,7 +59,25 @@ def get_ticker_list() -> List[str]:
     df = get_all_data()
     if df.empty or 'TICKER' not in df.columns:
         return []
-    return sorted(df['TICKER'].unique().tolist())
+    return sorted(df['TICKER'].astype(str).unique().tolist())
+
+
+@st.cache_data(ttl=3600)
+def get_ticker_name_mapping() -> tuple:
+    """取得股票代號與名稱的對應表及名稱清單"""
+    df = get_all_data()
+    if df.empty or 'TICKER' not in df.columns or 'STOCK_NAME' not in df.columns:
+        return {}, {}, []
+    
+    unique_df = df.drop_duplicates(subset=['TICKER'])
+    
+    ticker_to_name = dict(zip(unique_df['TICKER'].astype(str), unique_df['STOCK_NAME'].astype(str)))
+    name_to_ticker = dict(zip(unique_df['STOCK_NAME'].astype(str), unique_df['TICKER'].astype(str)))
+    
+    # 建立一個乾淨的名稱清單並排序 (過濾掉 nan)
+    name_list = sorted([str(name) for name in unique_df['STOCK_NAME'].unique() if pd.notna(name) and str(name).strip() != ""])
+    
+    return ticker_to_name, name_to_ticker, name_list
 
 
 @st.cache_data(ttl=3600)
@@ -79,7 +97,7 @@ def get_ticker_list_by_exchange(exchange: str) -> List[str]:
         return get_ticker_list()
 
     filtered = df[df['EXCHANGE'].str.lower() == exchange.lower()]
-    return sorted(filtered['TICKER'].unique().tolist())
+    return sorted(filtered['TICKER'].astype(str).unique().tolist())
 
 
 @st.cache_data(ttl=3600)
@@ -88,7 +106,7 @@ def get_stock_data(ticker: str) -> pd.DataFrame:
     df = get_all_data()
     if df.empty or 'TICKER' not in df.columns:
         return pd.DataFrame()
-    return df[df['TICKER'] == ticker].sort_values('TRADE_DATE')
+    return df[df['TICKER'].astype(str) == str(ticker)].sort_values('TRADE_DATE')
 
 
 def get_summary_stats() -> dict:
@@ -122,7 +140,8 @@ def get_stock_info(ticker: str) -> dict:
         "first_tag_count_2yr": "--",
         "win_rate_5pct": "--",
         "no_higher_pct": "--",
-        "tags_in_5days": 0
+        "tags_in_5days": 0,
+        "tags_in_10days": 0
     }
     
     if df.empty or 'TICKER' not in df.columns:
@@ -155,6 +174,11 @@ def get_stock_info(ticker: str) -> dict:
             # 計算有任何訊號的天數
             signal_count = int(((recent_5d['FIRST_SIGNAL'] == 1) | (recent_5d['FOLLOWING_SIGNAL'] == 1)).sum())
             info["tags_in_5days"] = signal_count
+            
+            # 5. 近十日標籤數 (Tags in 10 Days)
+            recent_10d = stock_df.head(10)
+            signal_count_10 = int(((recent_10d['FIRST_SIGNAL'] == 1) | (recent_10d['FOLLOWING_SIGNAL'] == 1)).sum())
+            info["tags_in_10days"] = signal_count_10
 
     # --- 以下為暫時保留的 Mock Data (未來可進階計算) ---
     info["first_tag_count_2yr"] = 8

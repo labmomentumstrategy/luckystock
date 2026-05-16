@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from utils.gsheet import get_ticker_list, get_stock_data, get_stock_info
+from utils.gsheet import get_ticker_list, get_stock_data, get_stock_info, get_ticker_name_mapping
 from utils.gsheet import get_cb_ids_by_ticker, get_cb_daily_data
 from utils.analytics import track_page_view
 from utils.ui import load_css, render_sidebar
@@ -33,47 +33,91 @@ st.markdown("### 📈 Stock Scanner")
 
 # Layout: Ticker Select + Score Cards
 tickers = get_ticker_list()
-row1_cols = st.columns(5)
+ticker_to_name, name_to_ticker, stock_names = get_ticker_name_mapping()
 
-with row1_cols[0]:
+# Initialize session state for synced dropdowns
+if "ticker_selector" not in st.session_state:
+    st.session_state.ticker_selector = tickers[0] if tickers else None
+if "name_selector" not in st.session_state:
+    st.session_state.name_selector = ticker_to_name.get(tickers[0], "") if tickers else None
+
+def on_ticker_change():
+    t = st.session_state.ticker_selector
+    st.session_state.name_selector = ticker_to_name.get(t, "")
+
+def on_name_change():
+    n = st.session_state.name_selector
+    st.session_state.ticker_selector = name_to_ticker.get(n, "")
+
+filter_cols = st.columns(2)
+
+with filter_cols[0]:
     if tickers:
-        selected_ticker = st.selectbox("Ticker", tickers, index=0)
+        st.selectbox(
+            "Ticker", 
+            tickers, 
+            key="ticker_selector",
+            on_change=on_ticker_change
+        )
     else:
         st.warning("No data")
-        selected_ticker = None
+
+with filter_cols[1]:
+    if stock_names:
+        st.selectbox(
+            "Stock Name", 
+            stock_names, 
+            key="name_selector",
+            on_change=on_name_change
+        )
+
+selected_ticker = st.session_state.ticker_selector
 
 if selected_ticker:
     info = get_stock_info(selected_ticker)
     
-    with row1_cols[1]:
+    # Score cards in a new row
+    score_cols = st.columns(5)
+    
+    with score_cols[0]:
         st.markdown(f"""
 <div class="stock-info-card">
 <div class="card-label">Latest Price Date</div>
 <div class="card-value">{info['latest_price_date']}</div>
 </div>""", unsafe_allow_html=True)
         
-    with row1_cols[2]:
+    with score_cols[1]:
         st.markdown(f"""
 <div class="stock-info-card">
 <div class="card-label">Stock Name</div>
 <div class="card-value">{info['stock_name']}</div>
 </div>""", unsafe_allow_html=True)
         
-    with row1_cols[3]:
+    with score_cols[2]:
         st.markdown(f"""
 <div class="stock-info-card">
 <div class="card-label">Industry</div>
 <div class="card-value">{info['industry']}</div>
 </div>""", unsafe_allow_html=True)
 
-    with row1_cols[4]:
-        tags_5d = info['tags_in_5days']
+    with score_cols[3]:
+        tags_5d = info.get('tags_in_5days', 0)
         val_class = " val-accent" if tags_5d >= 5 else ""
         color_attr = ' style="color: #FF0000;"' if 3 <= tags_5d <= 4 else ""
         st.markdown(f"""
 <div class="stock-info-card">
 <div class="card-label">Tags in 5 Days</div>
 <div class="card-value{val_class}"{color_attr}>{tags_5d}</div>
+</div>""", unsafe_allow_html=True)
+
+    with score_cols[4]:
+        tags_10d = info.get('tags_in_10days', 0)
+        val_class_10 = " val-accent" if tags_10d >= 10 else ""
+        color_attr_10 = ' style="color: #FF0000;"' if 6 <= tags_10d <= 9 else ""
+        st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">Tags in 10 Days</div>
+<div class="card-value{val_class_10}"{color_attr_10}>{tags_10d}</div>
 </div>""", unsafe_allow_html=True)
 
 
