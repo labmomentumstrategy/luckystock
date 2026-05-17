@@ -49,7 +49,7 @@ def on_name_change():
     n = st.session_state.name_selector
     st.session_state.ticker_selector = name_to_ticker.get(n, "")
 
-filter_cols = st.columns(2)
+filter_cols = st.columns([1.5, 1.5, 1.2])
 
 with filter_cols[0]:
     if tickers:
@@ -70,6 +70,14 @@ with filter_cols[1]:
             key="name_selector",
             on_change=on_name_change
         )
+
+with filter_cols[2]:
+    timeframe_val = st.select_slider(
+        "Timeframe",
+        options=[0, 1, 2, 3],
+        value=0,
+        format_func=lambda x: "All" if x == 0 else f"{x} Year" if x == 1 else f"{x} Years"
+    )
 
 selected_ticker = st.session_state.ticker_selector
 
@@ -126,8 +134,17 @@ if selected_ticker:
     df = get_stock_data(selected_ticker)
     
     if not df.empty:
-        stock_date_min = df['TRADE_DATE'].min()
         stock_date_max = df['TRADE_DATE'].max()
+        stock_date_min = df['TRADE_DATE'].min()
+        
+        # Apply Timeframe logic
+        if timeframe_val > 0:
+            calculated_min = stock_date_max - pd.DateOffset(years=timeframe_val)
+            stock_date_min = max(stock_date_min, calculated_min)
+            
+        # Determine max volume within visible range for Y-axis scaling
+        visible_df = df[(df['TRADE_DATE'] >= stock_date_min) & (df['TRADE_DATE'] <= stock_date_max)]
+        visible_volume_max = visible_df['VOLUME'].max() if not visible_df.empty else df['VOLUME'].max()
 
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         
@@ -255,7 +272,7 @@ if selected_ticker:
         fig.update_yaxes(
             title_text="Volume",
             showgrid=False,
-            range=[0, volume.max() * 4],
+            range=[0, visible_volume_max * 4],
             title_font=dict(size=12, color="#ffffff"),
             tickfont=dict(size=10, color="#ffffff"),
             side="left",
