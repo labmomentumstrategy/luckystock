@@ -1,5 +1,5 @@
 """
-CB Scanner - 首頁
+CB Scanner - Home Page
 """
 import streamlit as st
 import pandas as pd
@@ -34,19 +34,20 @@ render_sidebar()
 st.markdown("### 🔍 CB Scanner")
 
 # --- Fetch Data ---
-with st.spinner("載入 CB 資料中..."):
+with st.spinner("Loading CB data..."):
     df_cb = get_all_cb_data()
 
 if not df_cb.empty:
-    # 找出最新交易日 (select max trade date from cb gsheet)
+    # Find latest trade date (select max trade date from cb gsheet)
     max_date = df_cb['TRADE_DATE'].max()
     
-    # 標題行：左邊放 caption + 日期，右邊放 Reset 按鈕（對齊下方 5 欄 Filter）
+    # Header row: Left has caption + date, Right has Reset button (aligned with the 5 filters below)
     header_cols = st.columns(5)
     with header_cols[0]:
-        st.caption("全市場可轉債當日數據掃描")
-        st.write(f"**最新交易日期:** {max_date.strftime('%Y-%m-%d')}")
-    # 初始化重設計數器
+        st.caption("Market-wide Convertible Bond Scanner")
+        st.write(f"**Latest Trade Date:** {max_date.strftime('%Y-%m-%d')}")
+        
+    # Initialize reset counter
     if "reset_counter" not in st.session_state:
         st.session_state.reset_counter = 0
     rc = st.session_state.reset_counter
@@ -56,21 +57,21 @@ if not df_cb.empty:
             st.session_state.reset_counter += 1
             st.rerun()
     
-    # 篩選最新交易日的資料 (where trade date = max_date)
+    # Filter data for the latest trade date (where trade date = max_date)
     df_latest = df_cb[df_cb['TRADE_DATE'] == max_date].copy()
     
     # --- 5 Columns for Filters ---
     filter_cols = st.columns(5)
     
-    # 確保 REFERENCE_PRICE 是數值並計算邊界
+    # Ensure REFERENCE_PRICE is numeric and calculate bounds
     ref_price_series = pd.to_numeric(df_latest['REFERENCE_PRICE'], errors='coerce').dropna()
     if not ref_price_series.empty:
         min_price = float(ref_price_series.min())
         max_price = float(ref_price_series.max())
     else:
-        min_price, max_price = 0.0, 1000.0  # 預設保護
+        min_price, max_price = 0.0, 1000.0  # Default fallback
         
-    # 確保 CONVERSION_VALUE 是數值並計算邊界
+    # Ensure CONVERSION_VALUE is numeric and calculate bounds
     cv_series = pd.to_numeric(df_latest['CONVERSION_VALUE'], errors='coerce').dropna()
     if not cv_series.empty:
         min_cv = float(cv_series.min())
@@ -78,7 +79,7 @@ if not df_cb.empty:
     else:
         min_cv, max_cv = 0.0, 1000.0
         
-    # 確保 CONVERTED_PERCENTAGE 是數值並乘以 100
+    # Ensure CONVERTED_PERCENTAGE is numeric and multiply by 100
     conv_pct_series = pd.to_numeric(df_latest['CONVERTED_PERCENTAGE'], errors='coerce').dropna() * 100
     if not conv_pct_series.empty:
         min_pct = float(conv_pct_series.min())
@@ -86,7 +87,7 @@ if not df_cb.empty:
     else:
         min_pct, max_pct = 0.0, 100.0
         
-    # 確保 REMAINING_DAYS 是數值並計算邊界
+    # Ensure REMAINING_DAYS is numeric and calculate bounds
     rem_days_series = pd.to_numeric(df_latest['REMAINING_DAYS'], errors='coerce').dropna()
     if not rem_days_series.empty:
         min_days = float(rem_days_series.min())
@@ -135,8 +136,8 @@ if not df_cb.empty:
         
     st.markdown("---")
     
-    # 依據 Slider 過濾資料
-    # 建立一個全為 True 的 mask，逐步疊加過濾條件
+    # Filter data based on sliders
+    # Create a mask initialized to True, then stack conditions
     mask = pd.Series([True] * len(df_latest), index=df_latest.index)
     
     if price_range[0] > min_price or price_range[1] < max_price:
@@ -154,17 +155,17 @@ if not df_cb.empty:
         
     df_filtered = df_latest[mask].copy()
     
-    # 隱藏不需要的欄位 (TRADE_DATE 已在上方顯示過)
+    # Drop unnecessary columns (TRADE_DATE is already shown in the header)
     cols_to_drop = [
         'IS_ACTIVE', 'DATE_OF_DELISTED', 'COUPON_RATE', 'TRADE_DATE',
         'OUTSTANDING_AMOUNT', 'LATEST_PUT_PRICE', 'EARLY_REDEMPTION_PRICE'
     ]
     df_display = df_filtered.drop(columns=cols_to_drop, errors='ignore')
     
-    # 新增動態序號欄位到最左側
+    # Add dynamic index column to the leftmost position
     df_display.insert(0, 'NO.', range(1, len(df_display) + 1))
     
-    # 調整欄位順序：CB_NAME 右邊依序放 REF_PRICE, CV, CONVERTED_PCT, REM_DAYS
+    # Adjust column order: Place REF_PRICE, CV, CONVERTED_PCT, REM_DAYS directly to the right of CB_NAME
     cols = list(df_display.columns)
     priority_after_cbname = ['REFERENCE_PRICE', 'CONVERSION_VALUE', 'CONVERTED_PERCENTAGE', 'REMAINING_DAYS']
     if 'CB_NAME' in cols:
@@ -177,7 +178,7 @@ if not df_cb.empty:
                 cols.insert(idx + i, col)
         df_display = df_display[cols]
     
-    # 顯示資料表（支援行選取 highlight）
+    # Display data table (supports single-row selection highlighting)
     st.dataframe(
         df_display,
         use_container_width=True,
@@ -186,4 +187,4 @@ if not df_cb.empty:
         on_select="rerun"
     )
 else:
-    st.warning("目前無法取得 CB 資料，請確認資料源或連線設定。")
+    st.warning("Unable to fetch CB data. Please check the data source or connection settings.")
