@@ -45,7 +45,10 @@ if not df_cb.empty:
     header_cols = st.columns(5)
     with header_cols[0]:
         st.caption("Market-wide Convertible Bond Scanner")
-        st.write(f"**Latest Trade Date:** {max_date.strftime('%Y-%m-%d')}")
+        st.markdown(
+            f"<p style='font-size: 0.8rem; margin: 0;'><strong>Latest Trade Date:</strong> {max_date.strftime('%Y-%m-%d')}</p>", 
+            unsafe_allow_html=True
+        )
         
     # Initialize reset counter
     if "reset_counter" not in st.session_state:
@@ -94,6 +97,21 @@ if not df_cb.empty:
         max_days = float(rem_days_series.max())
     else:
         min_days, max_days = 0.0, 3650.0
+        
+    # Ensure INITIAL_DATE_OF_CONVERSION is datetime and calculate LISTED_DAYS
+    init_conv_date = pd.to_datetime(df_latest['INITIAL_DATE_OF_CONVERSION'], errors='coerce')
+    listed_date = init_conv_date - pd.Timedelta(days=90)
+    df_latest['LISTED_DAYS'] = (pd.to_datetime(df_latest['TRADE_DATE']) - listed_date).dt.days
+    
+    # Clip to 0 to prevent negative values (-1, -2) caused by calendar month day variations
+    df_latest['LISTED_DAYS'] = df_latest['LISTED_DAYS'].clip(lower=0)
+    
+    listed_days_series = df_latest['LISTED_DAYS'].dropna()
+    if not listed_days_series.empty:
+        min_listed = int(listed_days_series.min())
+        max_listed = int(listed_days_series.max())
+    else:
+        min_listed, max_listed = 0, 3650
     
     with filter_cols[0]:
         price_range = st.slider(
@@ -132,7 +150,13 @@ if not df_cb.empty:
         )
         
     with filter_cols[4]:
-        st.markdown("<div style='height: 60px; border: 1px dashed #333; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #666; margin-top: 25px;'>Filter 5 (Reserved)</div>", unsafe_allow_html=True)
+        listed_days_range = st.slider(
+            "Listed Days",
+            min_value=min_listed,
+            max_value=max_listed,
+            value=(min_listed, max_listed),
+            key=f"listed_days_slider_{rc}"
+        )
         
     st.markdown("---")
     
@@ -153,6 +177,9 @@ if not df_cb.empty:
         rem_days_numeric = pd.to_numeric(df_latest['REMAINING_DAYS'], errors='coerce')
         mask &= (rem_days_numeric >= rem_days_range[0]) & (rem_days_numeric <= rem_days_range[1])
         
+    if listed_days_range[0] > min_listed or listed_days_range[1] < max_listed:
+        mask &= (df_latest['LISTED_DAYS'] >= listed_days_range[0]) & (df_latest['LISTED_DAYS'] <= listed_days_range[1])
+        
     df_filtered = df_latest[mask].copy()
     
     # Drop unnecessary columns (TRADE_DATE is already shown in the header)
@@ -165,9 +192,9 @@ if not df_cb.empty:
     # Add dynamic index column to the leftmost position
     df_display.insert(0, 'NO.', range(1, len(df_display) + 1))
     
-    # Adjust column order: Place REF_PRICE, CV, CONVERTED_PCT, REM_DAYS directly to the right of CB_NAME
+    # Adjust column order: Place REF_PRICE, CV, CONVERTED_PCT, REM_DAYS, LISTED_DAYS directly to the right of CB_NAME
     cols = list(df_display.columns)
-    priority_after_cbname = ['REFERENCE_PRICE', 'CONVERSION_VALUE', 'CONVERTED_PERCENTAGE', 'REMAINING_DAYS']
+    priority_after_cbname = ['REFERENCE_PRICE', 'CONVERSION_VALUE', 'CONVERTED_PERCENTAGE', 'REMAINING_DAYS', 'LISTED_DAYS']
     if 'CB_NAME' in cols:
         for col in priority_after_cbname:
             if col in cols:
