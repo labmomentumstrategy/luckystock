@@ -235,3 +235,8 @@ div[data-testid="metric-container"]:hover {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* --- Hide Streamlit DataFrame Toolbar --- */
+[data-testid="stElementToolbar"] {
+    display: none !important;
+}

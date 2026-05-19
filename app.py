@@ -205,6 +205,29 @@ if not df_cb.empty:
                 cols.insert(idx + i, col)
         df_display = df_display[cols]
     
+    # 建立下載記錄用的 Callback
+    def on_download_clicked():
+        try:
+            from utils.analytics import track_event
+            track_event("CB_Scanner_Download_Clicked", {"source": "app.py"})
+        except Exception:
+            pass
+
+    # 顯示表格前，先將資料轉為 CSV 格式 (加入 utf-8-sig 以支援 Excel 中文顯示)
+    csv_data = df_display.to_csv(index=False).encode('utf-8-sig')
+    
+    # 建立左右兩欄，將下載按鈕放在右邊
+    col1, col2 = st.columns([4, 1])
+    with col2:
+        st.download_button(
+            label="📥 下載 CSV",
+            data=csv_data,
+            file_name=f"cb_scanner_{max_date.strftime('%Y%m%d')}.csv",
+            mime="text/csv",
+            on_click=on_download_clicked,
+            use_container_width=True
+        )
+
     # Display data table (supports single-row selection highlighting)
     st.dataframe(
         df_display,
