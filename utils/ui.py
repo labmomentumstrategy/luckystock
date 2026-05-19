@@ -31,6 +31,9 @@ def render_sidebar():
         st.subheader("📍 Navigation")
         st.page_link("app.py", label="Observatory (Home)", icon="🔭")
         st.page_link("pages/1_Stock_Query.py", label="Stock Scanner", icon="📈")
+        st.page_link("pages/2_Telegram_Channel.py", label="Telegram Channel", icon="📢")
+        st.page_link("https://medium.com", label="Medium Theory", icon="📝", disabled=True)
+        st.page_link("https://youtube.com", label="YouTube Stats", icon="📺", disabled=True)
 
         # --- Version ---
         st.markdown("---")
@@ -42,4 +45,15 @@ def render_sidebar():
             st.caption(f"🔖 {result.stdout.strip()}")
         except Exception:
             st.caption("🔖 version unknown")
+
+        # --- System Resource Status ---
+        try:
+            from utils.system import get_memory_usage
+            used_mb, limit_mb, mem_percent = get_memory_usage()
+            
+            # 直接在 Commit 資訊正下方顯示 RAM 資訊與進度條，不做收合
+            st.caption(f"📟 RAM: {used_mb:.1f} MB / {limit_mb:.0f} MB")
+            st.progress(min(1.0, mem_percent / 100.0))
+        except Exception:
+            pass
 
