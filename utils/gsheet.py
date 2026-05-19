@@ -141,7 +141,8 @@ def get_stock_info(ticker: str) -> dict:
         "win_rate_5pct": "--",
         "no_higher_pct": "--",
         "tags_in_5days": 0,
-        "tags_in_10days": 0
+        "tags_in_10days": 0,
+        "tags_in_20days": 0
     }
     
     if df.empty or 'TICKER' not in df.columns:
@@ -179,6 +180,11 @@ def get_stock_info(ticker: str) -> dict:
             recent_10d = stock_df.head(10)
             signal_count_10 = int(((recent_10d['FIRST_SIGNAL'] == 1) | (recent_10d['FOLLOWING_SIGNAL'] == 1)).sum())
             info["tags_in_10days"] = signal_count_10
+
+            # 6. 近二十日標籤數 (Tags in 20 Days)
+            recent_20d = stock_df.head(20)
+            signal_count_20 = int(((recent_20d['FIRST_SIGNAL'] == 1) | (recent_20d['FOLLOWING_SIGNAL'] == 1)).sum())
+            info["tags_in_20days"] = signal_count_20
 
     # --- 以下為暫時保留的 Mock Data (未來可進階計算) ---
     info["first_tag_count_2yr"] = 8

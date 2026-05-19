@@ -99,18 +99,11 @@ if selected_ticker:
     with score_cols[1]:
         st.markdown(f"""
 <div class="stock-info-card">
-<div class="card-label">Stock Name</div>
-<div class="card-value">{info['stock_name']}</div>
-</div>""", unsafe_allow_html=True)
-        
-    with score_cols[2]:
-        st.markdown(f"""
-<div class="stock-info-card">
 <div class="card-label">Industry</div>
 <div class="card-value">{info['industry']}</div>
 </div>""", unsafe_allow_html=True)
 
-    with score_cols[3]:
+    with score_cols[2]:
         tags_5d = info.get('tags_in_5days', 0)
         val_class = " val-accent" if tags_5d >= 5 else ""
         color_attr = ' style="color: #FF0000;"' if 3 <= tags_5d <= 4 else ""
@@ -120,7 +113,7 @@ if selected_ticker:
 <div class="card-value{val_class}"{color_attr}>{tags_5d}</div>
 </div>""", unsafe_allow_html=True)
 
-    with score_cols[4]:
+    with score_cols[3]:
         tags_10d = info.get('tags_in_10days', 0)
         val_class_10 = " val-accent" if tags_10d >= 10 else ""
         color_attr_10 = ' style="color: #FF0000;"' if 6 <= tags_10d <= 9 else ""
@@ -128,6 +121,16 @@ if selected_ticker:
 <div class="stock-info-card">
 <div class="card-label">Tags in 10 Days</div>
 <div class="card-value{val_class_10}"{color_attr_10}>{tags_10d}</div>
+</div>""", unsafe_allow_html=True)
+
+    with score_cols[4]:
+        tags_20d = info.get('tags_in_20days', 0)
+        val_class_20 = " val-accent" if tags_20d >= 15 else ""
+        color_attr_20 = ' style="color: #FF0000;"' if 10 <= tags_20d <= 14 else ""
+        st.markdown(f"""
+<div class="stock-info-card">
+<div class="card-label">Tags in 20 Days</div>
+<div class="card-value{val_class_20}"{color_attr_20}>{tags_20d}</div>
 </div>""", unsafe_allow_html=True)
 
 
