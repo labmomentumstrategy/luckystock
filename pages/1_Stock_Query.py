@@ -425,7 +425,69 @@ if selected_ticker:
 
         if not cb_df.empty and 'UNCONVERTED_PCT_DISPLAY' in cb_df.columns:
 
-            fig_cb = make_subplots(specs=[[{"secondary_y": True}]])
+            fig_cb = make_subplots(
+                rows=2, cols=1, 
+                shared_xaxes=True, 
+                vertical_spacing=0.05, 
+                row_heights=[0.7, 0.3]
+            )
+            
+            # Add CB Price (REFERENCE_PRICE) on top chart (row=1)
+            if 'REFERENCE_PRICE' in cb_df.columns:
+                fig_cb.add_trace(go.Scatter(
+                    x=cb_df['TRADE_DATE'],
+                    y=cb_df['REFERENCE_PRICE'],
+                    mode='lines',
+                    name='CB Price',
+                    line=dict(color='#ffffff', width=2),
+                    hovertemplate='CB Price: %{y:.2f}<extra></extra>',
+                    showlegend=False
+                ), row=1, col=1)
+
+                # Add Max/Min annotations for CB Price
+                valid_price_df = cb_df.dropna(subset=['REFERENCE_PRICE'])
+                if not valid_price_df.empty:
+                    max_price_idx = valid_price_df['REFERENCE_PRICE'].idxmax()
+                    min_price_idx = valid_price_df['REFERENCE_PRICE'].idxmin()
+                    
+                    max_row = valid_price_df.loc[max_price_idx]
+                    min_row = valid_price_df.loc[min_price_idx]
+                    
+                    # Highest Price Annotation (Red/Orange)
+                    fig_cb.add_annotation(
+                        x=max_row['TRADE_DATE'],
+                        y=max_row['REFERENCE_PRICE'],
+                        text=f"Max: {max_row['REFERENCE_PRICE']:.2f}",
+                        showarrow=True,
+                        arrowhead=1,
+                        arrowcolor="#ff6b35",
+                        arrowsize=1.5,
+                        ax=0,
+                        ay=-30,
+                        font=dict(color="#ff6b35", size=10),
+                        bgcolor="rgba(10, 14, 23, 0.7)",
+                        bordercolor="#ff6b35",
+                        row=1, col=1
+                    )
+                    
+                    # Lowest Price Annotation (Green)
+                    fig_cb.add_annotation(
+                        x=min_row['TRADE_DATE'],
+                        y=min_row['REFERENCE_PRICE'],
+                        text=f"Min: {min_row['REFERENCE_PRICE']:.2f}",
+                        showarrow=True,
+                        arrowhead=1,
+                        arrowcolor="#00d4aa",
+                        arrowsize=1.5,
+                        ax=0,
+                        ay=30,
+                        font=dict(color="#00d4aa", size=10),
+                        bgcolor="rgba(10, 14, 23, 0.7)",
+                        bordercolor="#00d4aa",
+                        row=1, col=1
+                    )
+
+            # Unconverted % on bottom chart (row=2)
             fig_cb.add_trace(go.Bar(
                 x=cb_df['TRADE_DATE'],
                 y=cb_df['UNCONVERTED_PCT_DISPLAY'],
@@ -443,26 +505,14 @@ if selected_ticker:
                 name='Unconverted %',
                 showlegend=False,
                 hovertemplate='Date: %{x|%Y-%m-%d}<br>Unconverted: %{y:.2f}%<extra></extra>',
-            ), secondary_y=False)
-
-            # Add CB Price (REFERENCE_PRICE) on secondary Y-axis
-            if 'REFERENCE_PRICE' in cb_df.columns:
-                fig_cb.add_trace(go.Scatter(
-                    x=cb_df['TRADE_DATE'],
-                    y=cb_df['REFERENCE_PRICE'],
-                    mode='lines',
-                    name='CB Price',
-                    line=dict(color='#ffffff', width=2),
-                    hovertemplate='CB Price: %{y:.2f}<extra></extra>',
-                    showlegend=False
-                ), secondary_y=True)
+            ), row=2, col=1)
 
             fig_cb.update_layout(
                 title=dict(
                     text=f"{selected_cb} {cb_name} — Unconverted (%) & CB Price",
                     font=dict(size=14, color="#ffffff")
                 ),
-                height=380,
+                height=450,  # Increased height to give both subplots enough room
                 template="plotly_dark",
                 paper_bgcolor="#0a0e17",
                 plot_bgcolor="#0a0e17",
@@ -472,6 +522,7 @@ if selected_ticker:
                 bargap=0.15
             )
 
+            # X-axis styling (applied to both rows)
             fig_cb.update_xaxes(
                 showgrid=True,
                 gridcolor='rgba(42,46,57,0.5)',
@@ -481,9 +532,20 @@ if selected_ticker:
                 rangebreaks=[dict(bounds=["sat", "mon"])]  # skip weekends
             )
 
-            # Left Y-axis: Unconverted %
+            # Top Y-axis: CB Price (row 1)
             fig_cb.update_yaxes(
-                title_text="Unconverted %",
+                title_text="CB Price",
+                showgrid=True,
+                gridcolor='rgba(42,46,57,0.5)',
+                gridwidth=1,
+                title_font=dict(size=12, color="#ffffff"),
+                tickfont=dict(size=10, color="#ffffff"),
+                row=1, col=1
+            )
+
+            # Bottom Y-axis: Unconverted % (row 2)
+            fig_cb.update_yaxes(
+                title_text="Unconv %",
                 showgrid=True,
                 gridcolor='rgba(42,46,57,0.5)',
                 gridwidth=1,
@@ -491,19 +553,7 @@ if selected_ticker:
                 tickfont=dict(size=10, color="#ffffff"),
                 ticksuffix="%",
                 range=[0, 100],
-                side="left",
-                secondary_y=False
-            )
-
-            # Right Y-axis: CB Price
-            fig_cb.update_yaxes(
-                title_text="CB Price",
-                showgrid=False,
-                showticklabels=True,
-                title_font=dict(size=12, color="#ffffff"),
-                tickfont=dict(size=10, color="#ffffff"),
-                side="right",
-                secondary_y=True
+                row=2, col=1
             )
 
             st.plotly_chart(fig_cb, use_container_width=True)
