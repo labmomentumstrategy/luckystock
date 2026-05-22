@@ -7,7 +7,7 @@ from utils.ui import load_css, inject_scanline_effect, render_sidebar
 
 # --- Page Configuration (Streamlit 必須的第一個呼叫) ---
 st.set_page_config(
-    page_title="Telegram Channel | VMR Observatory",
+    page_title="Telegram Channel | CB Observatory",
     page_icon="📢",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -35,20 +35,14 @@ st.markdown("---")
 col_info, col_cta = st.columns([3, 2])
 
 with col_info:
-    st.markdown("#### 📡 訂閱 VIP 頻道，掌握即時量價信號！")
+    st.markdown("#### 📡 Subscribe to CB Lab Channel for Latest News & Strategies!")
     st.markdown(
         """
-        VMR 觀察站特別設立了 **Telegram VIP 頻道**，為交易者提供高頻率、自動化的量價與可轉債（CB）即時監控服務。
+        CB Lab has established an **Exclusive Telegram Channel** to provide automated daily Convertible Bond (CB) strategy picking for swing traders.
         
-        ##### 🚀 頻道核心價值與功能：
-        1. **即時量價雷達警告**
-           - 當市場主力資金有異常流入、突破關鍵大量時，系統將自動向頻道推送即時警報，絕不錯失起漲點。
-        2. **可轉債（CB）轉換主力追蹤**
-           - 精準追蹤 CB Unconverted %（未轉換比例）驟降的標的，抓出主力暗中吃貨並準備轉換拉抬的關鍵時刻。
-        3. **獨家選股策略回測與發布**
-           - 結合 7 大量化選股策略（包含多空雙向），定期發布最新回測數據與觀察清單，以科學的數據佐證勝率。
-        4. **VIP 專屬討論與交流**
-           - 進入 VIP 精英群組，與眾多專業量化交易者交流心得，共同精進您的交易系統。
+        ##### 🚀 Core Channel Strategy Picks:
+        **Exclusive Quant Strategy Publishing**
+           - Combining Data Engineering with Quantitative Strategies to regularly publish the latest data watchlists.
         """
     )
 
@@ -57,29 +51,39 @@ with col_cta:
     st.markdown(
         """
         <div class="stock-info-card" style="padding: 25px; text-align: center; border-color: #00d4aa; box-shadow: 0 0 15px rgba(0, 212, 170, 0.1);">
-            <div class="card-label" style="font-size: 0.9rem; color: #00d4aa; font-weight: bold;">⚡ Telegram VIP 社群 ⚡</div>
-            <div class="card-value" style="font-size: 1.6rem; margin: 15px 0; color: #ffffff;">免費加入</div>
+            <div class="card-label" style="font-size: 0.9rem; color: #00d4aa; font-weight: bold;">⚡ Exclusive Telegram Community ⚡</div>
+            <div class="card-value" style="font-size: 1.6rem; margin: 15px 0; color: #ffffff;">Join for Free</div>
             <div class="card-sub" style="font-size: 0.85rem; color: #9ca3af; margin-bottom: 20px; line-height: 1.5;">
-                立即訂閱我們的 Telegram 頻道，開啟您的量化量價追蹤與交易智能進化之旅！
+                Subscribe to our Telegram channel now and start your swing trading evolution!
             </div>
         </div>
         """,
         unsafe_allow_html=True
     )
     
-    # 原生 Streamlit 連結按鈕，供使用者點擊加入頻道
+    # Native Streamlit link button for users to join the channel
     st.link_button(
-        "👉 立即加入 Telegram VIP 頻道",
-        "https://t.me/your_telegram_channel_link",  # 您可以隨時在此替換成實際的 TG 連結
+        "👉 Join the Exclusive Telegram Channel Now",
+        "https://t.me/+Bo-1xK7HiyVkNmZl",
         use_container_width=True
     )
     
-    # 底部裝飾性文字
     st.markdown(
         """
         <p style="text-align: center; font-size: 0.75rem; color: #6b7280; margin-top: 10px;">
-            📡 目前狀態: <span style="color: #00d4aa; font-weight: bold;">● 線上運作中</span>
+            📡 Status: <span style="color: #00d4aa; font-weight: bold;">● Online & Active</span>
         </p>
         """,
         unsafe_allow_html=True
     )
+
+# --- Disclaimer Section (Full Width) ---
+st.markdown("---")
+st.markdown(
+    """
+    <div style="font-size: 0.8rem; color: #6b7280; line-height: 1.6; padding: 15px; border: 1px solid #ef4444; border-radius: 8px; background-color: rgba(31, 41, 55, 0.3);">
+        <strong style="color: #ef4444;">⚠️ Disclaimer:</strong> All data and content provided on this platform are strictly for personal data engineering research and educational purposes. They do not constitute financial, investment, or trading advice. Please note that the data processing pipeline involves Artificial Intelligence (AI) and automated algorithms, which may produce errors, inaccuracies, or delayed information. Users must conduct their own independent research and verification before making any financial decisions. Past performance is not indicative of future results. The creator assumes no liability for any financial losses or damages incurred from the use of this information.
+    </div>
+    """,
+    unsafe_allow_html=True
+)

@@ -31,9 +31,10 @@ def render_sidebar():
         st.subheader("📍 Navigation")
         st.page_link("app.py", label="Observatory (Home)", icon="🔭")
         st.page_link("pages/1_Stock_Query.py", label="Stock Scanner", icon="📈")
-        st.page_link("pages/2_Telegram_Channel.py", label="Telegram Channel", icon="📢", disabled=True)
+        st.page_link("pages/2_Telegram_Channel.py", label="Telegram Channel", icon="📢")
         st.page_link("https://medium.com", label="Medium Theory", icon="📝", disabled=True)
         st.page_link("https://youtube.com", label="YouTube Stats", icon="📺", disabled=True)
+
 
         # --- Version ---
         st.markdown("---")
