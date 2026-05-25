@@ -13,12 +13,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- Server-Side Tracking (GA4 追蹤) ---
-try:
-    from utils.analytics import track_page_view
-    track_page_view("Telegram_Channel", page_path="/telegram")
-except Exception:
-    pass
+
 
 # --- Load Custom CSS & Effects (全站 Cyberpunk 特效與字型) ---
 load_css()

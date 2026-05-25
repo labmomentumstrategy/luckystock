@@ -9,7 +9,6 @@ from plotly.subplots import make_subplots
 
 from utils.gsheet import get_ticker_list, get_stock_data, get_stock_info, get_ticker_name_mapping
 from utils.gsheet import get_cb_ids_by_ticker, get_cb_daily_data
-from utils.analytics import track_page_view, track_event
 from utils.ui import load_css, render_sidebar
 
 # --- Page Configuration (MUST be first st.* call) ---
@@ -19,8 +18,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- Server-Side Tracking ---
-track_page_view("Individual Stock", page_path="/stock")
 
 # --- Load Custom CSS ---
 load_css()
@@ -44,12 +41,10 @@ if "name_selector" not in st.session_state:
 def on_ticker_change():
     t = st.session_state.ticker_selector
     st.session_state.name_selector = ticker_to_name.get(t, "")
-    track_event("Stock_Search", {"search_type": "by_ticker", "ticker": t})
 
 def on_name_change():
     n = st.session_state.name_selector
     st.session_state.ticker_selector = name_to_ticker.get(n, "")
-    track_event("Stock_Search", {"search_type": "by_name", "stock_name": n})
 
 filter_cols = st.columns([1.5, 1.5, 1.2])
 

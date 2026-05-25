@@ -12,12 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- Server-Side Tracking ---
-try:
-    from utils.analytics import track_page_view
-    track_page_view("CB_Scanner_Home", page_path="/")
-except Exception:
-    pass
+
 
 # --- Import Data & UI ---
 from utils.gsheet import get_all_cb_data
@@ -205,14 +200,6 @@ if not df_cb.empty:
                 cols.insert(idx + i, col)
         df_display = df_display[cols]
     
-    # 建立下載記錄用的 Callback
-    def on_download_clicked():
-        try:
-            from utils.analytics import track_event
-            track_event("CB_Scanner_Download_Clicked", {"source": "app.py"})
-        except Exception:
-            pass
-
     # 顯示表格前，先將資料轉為 CSV 格式 (加入 utf-8-sig 以支援 Excel 中文顯示)
     csv_data = df_display.to_csv(index=False).encode('utf-8-sig')
     
@@ -224,7 +211,6 @@ if not df_cb.empty:
             data=csv_data,
             file_name=f"cb_scanner_{max_date.strftime('%Y%m%d')}.csv",
             mime="text/csv",
-            on_click=on_download_clicked,
             use_container_width=True
         )
 

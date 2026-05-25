@@ -48,7 +48,6 @@ luckystock/
 │   ├── __init__.py             # Module initialization
 │   ├── gsheet.py               # Google Sheets cache & retrieval module (CB Dashboard)
 │   ├── ui.py                   # Central UI styling, navigation & RAM monitoring
-│   ├── analytics.py            # GA4 Server-Side event logging & page tracking
 │   └── system.py               # Operating system resource utility
 ├── assets/
 │   └── style.css               # Central stylesheet (HUD styling, effects & animations)
@@ -67,7 +66,6 @@ luckystock/
 *   **Data Processing**: Pandas (v2.0.0+)
 *   **Visualization**: Plotly (v5.18.0+)
 *   **Database Connectivity**: Google Sheets API (`gspread`, `google-auth`)
-*   **Analytics**: Server-side Google Analytics 4 (GA4) tracker
 
 ---
 
@@ -87,7 +85,6 @@ cp secrets.toml.template .streamlit/secrets.toml
 Open `.streamlit/secrets.toml` and populate the placeholders with your secure credentials:
 *   **`[gcp_service_account]`**: Paste your GCP Service Account JSON details.
 *   **`[gsheet]`**: Fill in your `spreadsheet_id` and `cb_spreadsheet_id`.
-*   **`[ga4]`**: Add your GA4 Measurement ID (optional for local deployment).
 
 > [!WARNING]
 > Never commit `.streamlit/secrets.toml` to public version control systems. It is already appended to `.gitignore`.
